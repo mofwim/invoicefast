@@ -70,6 +70,8 @@ export default function ScanApp() {
   const [busy, setBusy] = useState(null);
   const [toast, setToast] = useState('');
   const [booted, setBooted] = useState(false);
+  // Resolved after mount: the Capacitor global does not exist during SSR.
+  const [native, setNative] = useState(false);
   const toastTimer = useRef(0);
 
   // Mirrors of the two pieces of state that async flows read after updating
@@ -112,6 +114,7 @@ export default function ScanApp() {
   useEffect(() => {
     // The native shell already serves everything from the APK, and a service
     // worker there would only add a second, staler cache layer.
+    setNative(isNative());
     if (isNative()) return;
     if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
@@ -128,7 +131,7 @@ export default function ScanApp() {
     const shared = params.get('shared');
     const wantsNew = params.get('new');
     if (!shared && !wantsNew) return;
-    window.history.replaceState({}, '', '/scan');
+    window.history.replaceState({}, '', window.location.pathname);
 
     (async () => {
       if (!shared) {
@@ -615,9 +618,13 @@ export default function ScanApp() {
             <div className="sf-subtitle">ماسح مستندات — يعمل داخل جهازك</div>
           </div>
           <div className="sf-spacer" />
-          <Link href="/" className="sf-iconbtn" aria-label="InvoiceFast" title="InvoiceFast">
-            <Icon name="file" />
-          </Link>
+          {/* In the Android app "/" is the launcher that bounces straight back
+              here, so the cross-link only makes sense on the web. */}
+          {native ? null : (
+            <Link href="/" className="sf-iconbtn" aria-label="InvoiceFast" title="InvoiceFast">
+              <Icon name="file" />
+            </Link>
+          )}
         </div>
 
         <div className="sf-body">
@@ -683,6 +690,7 @@ export default function ScanApp() {
     trayThumb,
     booted,
     busy,
+    native,
     handleCapture,
     handleImport,
     markNoCamera,

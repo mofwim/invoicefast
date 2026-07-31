@@ -10,8 +10,8 @@
  *  2. The OCR engine is vendored into public/, so text recognition works with
  *     no network at all. A store app that needs a CDN to read a receipt is not
  *     an offline app.
- *  3. out/index.html is replaced with a launcher that jumps to /scan/. The web
- *     deploy keeps the invoice generator at "/", but the Android app is the
+ *  3. out/index.html is replaced with a launcher that jumps to the scanner. The
+ *     web deploy keeps the invoice generator at "/", but the Android app is the
  *     scanner, and it should open on it.
  */
 
@@ -52,6 +52,14 @@ if (!existsSync(join(OUT, 'scan', 'index.html'))) {
 // Router hydrates against the route it was rendered for, so relocating that
 // file would leave the client router disagreeing with the URL. Styled like the
 // app so the hand-off from the splash screen is invisible.
+//
+// The target MUST keep the .html extension. Capacitor's WebViewLocalServer
+// answers any path whose last segment has no "." with this very file, so
+// redirecting to "/scan/" would serve the launcher again — an infinite loop
+// that shows as a black screen on the device. "/scan/index.html" contains a
+// dot, so it takes the file-serving branch instead. The guard below is a
+// second line of defence in case that ever changes.
+const SCANNER_PATH = '/scan/index.html';
 writeFileSync(
   join(OUT, 'index.html'),
   `<!doctype html>
@@ -61,15 +69,30 @@ writeFileSync(
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>ScanFast</title>
 <style>
-  html,body{margin:0;height:100%;background:#0e1116;}
+  html,body{margin:0;height:100%;background:#0e1116;color:#eef1f5;
+    font-family:-apple-system,"Segoe UI",Roboto,sans-serif;}
+  .m{position:absolute;inset:0;display:none;place-items:center;text-align:center;padding:24px;
+    font-size:15px;line-height:1.7;}
 </style>
-<script>location.replace('/scan/');</script>
+<script>
+  (function () {
+    var target = ${JSON.stringify(SCANNER_PATH)};
+    // Never redirect onto ourselves: that would spin forever behind a blank screen.
+    if (location.pathname === target || location.pathname === '/scan/') {
+      document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('m').style.display = 'grid';
+      });
+      return;
+    }
+    location.replace(target);
+  })();
+</script>
 </head>
-<body></body>
+<body><div class="m" id="m">تعذّر فتح التطبيق.<br>أعد تثبيت النسخة الأحدث.</div></body>
 </html>
 `
 );
-console.log('› wrote out/index.html (launcher → /scan/)');
+console.log(`› wrote out/index.html (launcher → ${SCANNER_PATH})`);
 
 /* 4. Sync ------------------------------------------------------------ */
 

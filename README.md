@@ -176,8 +176,16 @@ npm run android:open      # or open the project in Android Studio
 `npm run android:build` does three things a plain `next build` does not:
 switches Next to static export, vendors the OCR engine into the bundle so text
 recognition needs no network, and writes a launcher at the export root that
-opens `/scan/` (the web deploy keeps the invoice generator at `/`, but the
+opens the scanner (the web deploy keeps the invoice generator at `/`, but the
 Android app is the scanner).
+
+That launcher targets `/scan/index.html`, extension included, and it matters:
+Capacitor's WebView answers *any* path whose last segment has no `.` with the
+root `index.html`. So `/scan/` does not serve `out/scan/index.html` — it serves
+the launcher again, forever, which on a dark theme looks like a black screen.
+`scripts/serve-out.mjs` reproduces those exact rules rather than behaving like
+a normal static server, because a forgiving dev server hides this class of bug
+until it reaches a phone.
 
 That yields a self-contained bundle: with every external request blocked it
 still scans, runs OCR and exports a PDF — **zero network calls**.
