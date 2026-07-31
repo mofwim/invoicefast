@@ -1,0 +1,86 @@
+name: Android APK
+
+# Builds an installable APK on every push to a working branch, and on demand.
+# The artifact is attached to the run — Actions → this run → "Artifacts".
+on:
+  push:
+    branches:
+      - main
+      - 'claude/**'
+    paths-ignore:
+      - '**.md'
+      - 'store/**'
+  workflow_dispatch:
+    inputs:
+      release:
+        description: 'Also build an unsigned release AAB for Play'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      # The runner image ships an Android SDK, but compileSdk 36 may not be in
+      # it yet; this accepts the licences and lets Gradle fetch what's missing.
+      - uses: android-actions/setup-android@v3
+
+      - run: npm ci
+
+      # Static export + vendored OCR engine + cap sync. See
+      # scripts/build-android.mjs for what this does beyond `next build`.
+      - name: Build the web bundle
+        run: npm run android:build
+
+      - name: Assemble debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Report size
+        run: |
+          echo "### APK built :white_check_mark:" >> $GITHUB_STEP_SUMMARY
+          echo '' >> $GITHUB_STEP_SUMMARY
+          for f in android/app/build/outputs/apk/debug/*.apk; do
+            echo "- \`$(basename "$f")\` — $(du -h "$f" | cut -f1)" >> $GITHUB_STEP_SUMMARY
+          done
+          echo '' >> $GITHUB_STEP_SUMMARY
+          echo 'Download it from the **Artifacts** section of this run, copy it to an Android phone and open it. You will be asked to allow installing from unknown sources once.' >> $GITHUB_STEP_SUMMARY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: scanfast-debug-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      # Unsigned: Play needs a bundle signed with your own upload key, which
+      # never belongs in CI without a secret. See docs/play-store.md.
+      - name: Assemble release AAB (unsigned)
+        if: inputs.release
+        working-directory: android
+        run: ./gradlew bundleRelease --no-daemon --stacktrace
+
+      - uses: actions/upload-artifact@v4
+        if: inputs.release
+        with:
+          name: scanfast-release-aab-unsigned
+          path: android/app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error
+          retention-days: 30
