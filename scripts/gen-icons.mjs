@@ -9,7 +9,7 @@
  */
 
 import { deflateSync } from 'node:zlib';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -99,19 +99,33 @@ const BLUE_TOP = [0x4c, 0x8d, 0xff];
 const BLUE_BOT = [0x1d, 0x4e, 0xd8];
 const WHITE = [0xff, 0xff, 0xff];
 
+const circle = (cx, cy, r) => (px, py) => (px - cx) ** 2 + (py - cy) ** 2 <= r * r;
+
 /**
  * A page with scanner corner brackets — reads as "document scanner" even at
  * 48px in a launcher.
- * @param {boolean} maskable keep artwork inside the 80% safe zone
+ *
+ * @param {number} size output edge in pixels
+ * @param {{shape?: 'rounded'|'circle'|'full'|'none', contentScale?: number,
+ *          transparentBg?: boolean}} opts
+ *   shape 'full' is for maskable/adaptive art that the launcher crops itself;
+ *   'none' leaves the background transparent (adaptive foreground layer).
+ *   contentScale shrinks the artwork toward the centre to clear a safe zone.
  */
-function drawIcon(size, { maskable = false, transparentBg = false } = {}) {
+function drawIcon(size, { shape = 'rounded', contentScale = 1, transparentBg = false } = {}) {
   const W = size * SS;
   const px = Buffer.alloc(W * W * 4);
 
-  // Full-bleed for maskable (Android crops it), rounded otherwise.
-  const bg = maskable ? rect(0, 0, 1, 1) : roundedRect(0.045, 0.045, 0.91, 0.91, 0.225);
+  const bg =
+    shape === 'full'
+      ? rect(0, 0, 1, 1)
+      : shape === 'circle'
+        ? circle(0.5, 0.5, 0.5)
+        : shape === 'none'
+          ? () => false
+          : roundedRect(0.045, 0.045, 0.91, 0.91, 0.225);
 
-  const s = maskable ? 0.78 : 1; // shrink artwork into the safe zone
+  const s = contentScale;
   const c = 0.5;
   const map = (v) => c + (v - c) * s;
 
@@ -158,9 +172,12 @@ function drawIcon(size, { maskable = false, transparentBg = false } = {}) {
       const u = (x + 0.5) / W;
       const i = (y * W + x) * 4;
       const inBg = bg(u, v);
-      if (!inBg) continue;
+      const isInk = ink(u, v);
+      // With no background layer only the glyph is painted; the rest stays
+      // transparent so the launcher can composite its own background.
+      if (!inBg && !isInk) continue;
       const base = transparentBg ? WHITE : mix(BLUE_TOP, BLUE_BOT, v);
-      const col = ink(u, v) ? WHITE : base;
+      const col = isInk ? WHITE : base;
       px[i] = col[0];
       px[i + 1] = col[1];
       px[i + 2] = col[2];
@@ -205,7 +222,7 @@ mkdirSync(OUT_DIR, { recursive: true });
 const targets = [
   ['icon-192.png', 192, {}],
   ['icon-512.png', 512, {}],
-  ['maskable-512.png', 512, { maskable: true }],
+  ['maskable-512.png', 512, { shape: 'full', contentScale: 0.78 }],
   ['apple-touch-icon.png', 180, {}],
   ['favicon-32.png', 32, {}],
 ];
@@ -213,4 +230,42 @@ const targets = [
 for (const [name, size, opts] of targets) {
   writeFileSync(join(OUT_DIR, name), drawIcon(size, opts));
   console.log(`wrote icons/${name} (${size}x${size})`);
+}
+
+/* ------------------------------------------------------------------ */
+/* Android launcher icons                                               */
+/* ------------------------------------------------------------------ */
+
+const ANDROID_RES = join(OUT_DIR, '..', '..', 'android', 'app', 'src', 'main', 'res');
+
+if (existsSync(ANDROID_RES)) {
+  // Legacy icons are 48dp; the adaptive foreground is drawn on a 108dp canvas
+  // of which only the central ~66dp is guaranteed visible.
+  const DENSITIES = [
+    ['mdpi', 1],
+    ['hdpi', 1.5],
+    ['xhdpi', 2],
+    ['xxhdpi', 3],
+    ['xxxhdpi', 4],
+  ];
+  for (const [density, factor] of DENSITIES) {
+    const dir = join(ANDROID_RES, `mipmap-${density}`);
+    mkdirSync(dir, { recursive: true });
+    const legacy = Math.round(48 * factor);
+    const adaptive = Math.round(108 * factor);
+    writeFileSync(join(dir, 'ic_launcher.png'), drawIcon(legacy, {}));
+    writeFileSync(join(dir, 'ic_launcher_round.png'), drawIcon(legacy, { shape: 'circle' }));
+    writeFileSync(
+      join(dir, 'ic_launcher_foreground.png'),
+      drawIcon(adaptive, { shape: 'none', contentScale: 0.8 })
+    );
+    // Splash artwork: the same glyph, sized for a comfortable centre crop.
+    writeFileSync(
+      join(dir, 'ic_splash.png'),
+      drawIcon(Math.round(160 * factor), { shape: 'none', contentScale: 0.92 })
+    );
+    console.log(`wrote android mipmap-${density} (${legacy}px legacy, ${adaptive}px adaptive)`);
+  }
+} else {
+  console.log('android/ not present — skipped launcher icons');
 }

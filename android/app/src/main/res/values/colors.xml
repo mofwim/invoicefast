@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Capacitor's template theme references colorPrimary / colorPrimaryDark /
+  colorAccent but ships no definitions for them, so the build fails on a
+  missing resource until they exist. These are the brand colours from the web
+  app's CSS variables.
+-->
+<resources>
+    <color name="colorPrimary">#2563EB</color>
+    <color name="colorPrimaryDark">#1D4ED8</color>
+    <color name="colorAccent">#3B82F6</color>
+
+    <!-- Same value as the app background, so the splash hands over invisibly. -->
+    <color name="splashBackground">#0E1116</color>
+</resources>

@@ -16,6 +16,7 @@ import {
 } from '@/lib/scan/db';
 import { detectDocument } from '@/lib/scan/detect';
 import { imageDataToBlob, makeThumbData, renderPage, toImageData } from '@/lib/scan/pipeline';
+import { isNative } from '@/lib/scan/platform';
 import CameraView from './components/CameraView';
 import CropView from './components/CropView';
 import EditView from './components/EditView';
@@ -109,6 +110,9 @@ export default function ScanApp() {
   }, [refreshDocs]);
 
   useEffect(() => {
+    // The native shell already serves everything from the APK, and a service
+    // worker there would only add a second, staler cache layer.
+    if (isNative()) return;
     if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
     }

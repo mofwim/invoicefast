@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { OCR_LANGUAGES, recognize, terminateOcr } from '@/lib/scan/ocr';
+import { isNative } from '@/lib/scan/platform';
 import { Busy, Icon, Sheet } from './ui';
 
 const LANG_KEY = 'scanfast:ocr-lang';
@@ -19,9 +20,12 @@ export default function OcrSheet({ pages, currentIndex = 0, onSaveOcr, onClose, 
   const [busy, setBusy] = useState(null);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState(null);
+  // The Android build bundles the engine, so it never needs the network.
+  const [native, setNative] = useState(false);
   const cancelledRef = useRef(false);
 
   useEffect(() => {
+    setNative(isNative());
     try {
       const saved = localStorage.getItem(LANG_KEY);
       if (saved) setLang(saved);
@@ -100,7 +104,11 @@ export default function OcrSheet({ pages, currentIndex = 0, onSaveOcr, onClose, 
   return (
     <Sheet
       title="استخراج النص (OCR)"
-      note="يعمل داخل جهازك. أول تشغيل يحمّل ملفات اللغة من الإنترنت."
+      note={
+        native
+          ? 'يعمل داخل جهازك بالكامل — بدون إنترنت.'
+          : 'يعمل داخل جهازك. أول تشغيل يحمّل ملفات اللغة من الإنترنت.'
+      }
       onClose={busy ? undefined : close}
     >
       <div className="sf-field">

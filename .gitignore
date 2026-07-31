@@ -5,3 +5,6 @@ node_modules
 
 # vendored OCR engine — regenerate with `npm run vendor:ocr`
 public/tesseract
+
+# Static export for the Android build — regenerate with `npm run android:build`
+/out

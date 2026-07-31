@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { downloadBlob, exportPdf, exportText, makeZip, safeFilename } from '@/lib/scan/export';
+import { useEffect, useMemo, useState } from 'react';
+import { exportPdf, exportText, makeZip, safeFilename } from '@/lib/scan/export';
+import { deliverFile, isNative } from '@/lib/scan/platform';
 import { Busy, Sheet } from './ui';
 
 const PAGE_SIZES = [
@@ -23,6 +24,9 @@ export default function ExportSheet({ pages, docName, onClose, onToast }) {
   const [searchable, setSearchable] = useState(true);
   const [busy, setBusy] = useState(null);
   const [progress, setProgress] = useState(0);
+  // Resolved after mount: the Capacitor global doesn't exist during SSR.
+  const [native, setNative] = useState(false);
+  useEffect(() => setNative(isNative()), []);
 
   const hasOcr = useMemo(() => pages.some((p) => p.ocr?.words?.length), [pages]);
   const hasText = useMemo(() => pages.some((p) => p.ocr?.text), [pages]);
@@ -62,25 +66,16 @@ export default function ExportSheet({ pages, docName, onClose, onToast }) {
     setBusy(mode === 'share' ? 'جارٍ التحضير للمشاركة…' : 'جارٍ إنشاء الملف…');
     try {
       const { blob, name } = await build();
-      if (mode === 'share') {
-        const file = new File([blob], name, { type: blob.type });
-        if (navigator.canShare?.({ files: [file] })) {
-          await navigator.share({ files: [file], title: docName });
-          onToast?.('تمت المشاركة');
-          onClose();
-          return;
-        }
-        onToast?.('المشاركة غير مدعومة — تم التنزيل بدلًا منها');
-      }
-      downloadBlob(blob, name);
-      onToast?.(`تم حفظ ${name}`);
-      onClose();
+      const result = await deliverFile(blob, name, {
+        title: docName,
+        preferShare: mode === 'share',
+      });
+      if (result === 'shared') onToast?.('تمت المشاركة');
+      else if (result === 'downloaded') onToast?.(`تم حفظ ${name}`);
+      if (result !== 'cancelled') onClose();
     } catch (err) {
-      if (err?.name === 'AbortError') {
-        // User dismissed the share sheet — not an error.
-      } else {
-        onToast?.(`تعذّر التصدير: ${err?.message || err}`);
-      }
+      // A dismissed share sheet is a choice, not a failure.
+      if (err?.name !== 'AbortError') onToast?.(`تعذّر التصدير: ${err?.message || err}`);
     } finally {
       setBusy(null);
     }
@@ -177,17 +172,32 @@ export default function ExportSheet({ pages, docName, onClose, onToast }) {
       ) : null}
 
       <div className="sf-actions" style={{ padding: '18px 0 0' }}>
-        <button type="button" className="sf-btn" onClick={() => run('share')} disabled={!!busy}>
-          مشاركة
-        </button>
-        <button
-          type="button"
-          className="sf-btn sf-btn--primary"
-          onClick={() => run('download')}
-          disabled={!!busy}
-        >
-          تنزيل
-        </button>
+        {native ? (
+          // On Android everything goes through the system share sheet — that is
+          // also where "save to Files/Drive" lives, and it needs no permission.
+          <button
+            type="button"
+            className="sf-btn sf-btn--primary"
+            onClick={() => run('share')}
+            disabled={!!busy}
+          >
+            حفظ أو مشاركة
+          </button>
+        ) : (
+          <>
+            <button type="button" className="sf-btn" onClick={() => run('share')} disabled={!!busy}>
+              مشاركة
+            </button>
+            <button
+              type="button"
+              className="sf-btn sf-btn--primary"
+              onClick={() => run('download')}
+              disabled={!!busy}
+            >
+              تنزيل
+            </button>
+          </>
+        )}
       </div>
 
       {busy ? <Busy label={busy} progress={format === 'pdf' ? progress : undefined} /> : null}

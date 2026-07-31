@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Window background shown before the WebView paints. A layer-list scales to any
+  screen, so there is no need for eleven density- and orientation-specific PNGs.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/splashBackground" />
+    <item>
+        <bitmap
+            android:gravity="center"
+            android:src="@mipmap/ic_splash" />
+    </item>
+</layer-list>

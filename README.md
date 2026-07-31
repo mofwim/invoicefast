@@ -3,10 +3,14 @@
 Two no-signup web tools in one Next.js app. Everything runs in the browser —
 no accounts, no uploads, no server-side storage.
 
-| Route   | What it is                                                                |
-| ------- | ------------------------------------------------------------------------- |
-| `/`     | **InvoiceFast** — invoice generator with live preview and PDF download.    |
-| `/scan` | **ScanFast** — document scanner: camera → clean, deskewed, searchable PDF. |
+| Route      | What it is                                                                |
+| ---------- | ------------------------------------------------------------------------- |
+| `/`        | **InvoiceFast** — invoice generator with live preview and PDF download.    |
+| `/scan`    | **ScanFast** — document scanner: camera → clean, deskewed, searchable PDF. |
+| `/privacy` | Privacy policy (Google Play requires a reachable URL).                     |
+
+The scanner also ships as an **Android app** — same code, wrapped with
+Capacitor. See [docs/play-store.md](docs/play-store.md).
 
 ```bash
 npm install
@@ -158,6 +162,39 @@ npm run icons
   (~260 dpi on A4) — plenty for print, and it keeps a 40-page document inside a
   sane storage budget.
 
+## The Android app
+
+The same web code, wrapped by [Capacitor](https://capacitorjs.com) — one
+codebase for the web and Google Play.
+
+```bash
+npm run android:build     # static export + offline OCR + cap sync
+npm run android:apk       # debug APK for your own phone
+npm run android:open      # or open the project in Android Studio
+```
+
+`npm run android:build` does three things a plain `next build` does not:
+switches Next to static export, vendors the OCR engine into the bundle so text
+recognition needs no network, and writes a launcher at the export root that
+opens `/scan/` (the web deploy keeps the invoice generator at `/`, but the
+Android app is the scanner).
+
+That yields a self-contained bundle: with every external request blocked it
+still scans, runs OCR and exports a PDF — **zero network calls**.
+
+Exports take a different route natively. Inside a WebView an `<a download>` on
+a blob URL is dropped and `navigator.share` does not exist, so both fail
+silently; `lib/scan/platform.js` writes the file to app storage and opens the
+system share sheet instead.
+
+Signing, versioning, store listing copy, the data-safety answers and a release
+checklist are in **[docs/play-store.md](docs/play-store.md)**. The listing
+graphics in [`store/`](store) are generated from the running app by
+`scripts/store-assets.mjs`, so they cannot drift from what ships.
+
+Building the APK needs the Android SDK, which this repo does not vendor —
+everything else (native project, icons, splash, store graphics) is committed.
+
 ---
 
 # InvoiceFast — the invoice generator
@@ -195,7 +232,9 @@ needed. Add a custom domain in the Vercel dashboard.
 ## Roadmap
 
 **Scanner** — ID-card mode (two sides on one page), signature stamp, batch
-rename, folders, PDF import for re-editing, cloud sync as a paid tier.
+rename, folders, PDF import for re-editing, cloud sync as a paid tier, and an
+`ACTION_SEND` intent filter so the Android app can receive shared images the
+way the PWA already does.
 
 **Invoices** — logo upload, saved clients, recurring invoices, more templates,
 email delivery.
