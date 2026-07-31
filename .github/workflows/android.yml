@@ -18,7 +18,8 @@ on:
         default: false
 
 permissions:
-  contents: read
+  # Needed to attach the APK to a release.
+  contents: write
 
 # Queue rather than cancel: an in-flight build is usually the one someone is
 # waiting on for an APK.
@@ -82,6 +83,33 @@ jobs:
           path: android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 30
+
+      # An Actions artifact is a zip behind a login, which is awkward to install
+      # from a phone. A release asset is a direct .apk link you can just tap.
+      # The tag is stable, so the link never changes between builds.
+      - name: Publish the APK to a release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG=apk-latest
+          cp android/app/build/outputs/apk/debug/app-debug.apk ScanFast.apk
+          NOTES="Debug build of ScanFast from \`${GITHUB_SHA:0:7}\`.
+
+          Install: download **ScanFast.apk** on an Android phone and open it. Android will ask once to allow installing from this source.
+
+          Works fully offline, including text recognition. This is a debug build for testing — the Play release is built with \`npm run android:aab\` and your own signing key (see docs/play-store.md)."
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" ScanFast.apk --clobber
+            gh release edit "$TAG" --notes "$NOTES"
+          else
+            gh release create "$TAG" ScanFast.apk \
+              --title "ScanFast — latest test APK" \
+              --notes "$NOTES" \
+              --prerelease
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Download:** $(gh release view "$TAG" --json url -q .url)" >> $GITHUB_STEP_SUMMARY
 
       # Unsigned: Play needs a bundle signed with your own upload key, which
       # never belongs in CI without a secret. See docs/play-store.md.
