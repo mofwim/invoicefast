@@ -20,6 +20,12 @@ on:
 permissions:
   contents: read
 
+# Queue rather than cancel: an in-flight build is usually the one someone is
+# waiting on for an APK.
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -42,14 +48,21 @@ jobs:
       # it yet; this accepts the licences and lets Gradle fetch what's missing.
       - uses: android-actions/setup-android@v3
 
-      - run: npm ci
+      # Audit and funding metadata add network round-trips and nothing else
+      # here. Step timeouts keep a hang from burning the whole job budget with
+      # no logs to show for it.
+      - name: Install dependencies
+        timeout-minutes: 12
+        run: npm ci --no-audit --no-fund
 
       # Static export + vendored OCR engine + cap sync. See
       # scripts/build-android.mjs for what this does beyond `next build`.
       - name: Build the web bundle
+        timeout-minutes: 15
         run: npm run android:build
 
       - name: Assemble debug APK
+        timeout-minutes: 25
         working-directory: android
         run: ./gradlew assembleDebug --no-daemon --stacktrace
 
