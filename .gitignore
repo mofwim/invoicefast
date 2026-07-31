@@ -2,3 +2,6 @@ node_modules
 .next
 .env*.local
 .DS_Store
+
+# vendored OCR engine — regenerate with `npm run vendor:ocr`
+public/tesseract

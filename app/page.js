@@ -88,6 +88,9 @@ export default function Home() {
           <span className="logo">▮▮</span> InvoiceFast
         </div>
         <div className="tagline">Free invoice generator — no signup</div>
+        <a className="ghost" href="/scan" style={{ marginLeft: "auto" }}>
+          📄 Scan to PDF
+        </a>
         {paid ? (
           <span className="pro-badge">Pro</span>
         ) : (

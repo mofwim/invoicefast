@@ -6,6 +6,10 @@ export const metadata = {
     "Create a professional invoice in seconds and download the PDF. No account needed — your data stays in your browser. USD, EUR, GBP.",
   keywords:
     "free invoice generator, invoice pdf, freelancer invoice, invoice maker, no signup invoice",
+  icons: {
+    icon: [{ url: "/icons/favicon-32.png", sizes: "32x32", type: "image/png" }],
+    apple: "/icons/apple-touch-icon.png",
+  },
 };
 
 export const viewport = {
