@@ -1,3 +1,11 @@
+This repository holds two products:
+
+- **InvoiceFast** (`/`) — a free invoice generator.
+- **Mijn Afspraken** (`/afspraken`) — an appointment overview that pulls
+  appointments out of a calendar and out of e-mail. See [its section below](#mijn-afspraken--al-je-afspraken-op-één-plek).
+
+---
+
 # InvoiceFast — free invoice generator (web)
 
 A fast, no-signup invoice generator for freelancers. Fill the form, see a live
@@ -80,3 +88,110 @@ invoice-app/
 ├── package.json
 └── next.config.js
 ```
+
+---
+
+# Mijn Afspraken — al je afspraken op één plek
+
+For people whose appointments arrive scattered across a calendar and an inbox,
+and who would rather not go looking. One page, three tabs — **Voorbij**,
+**Binnenkort**, **Later** — showing the time, the date, who it is with, where it
+is, and the papers that belong to it.
+
+Live at **`/afspraken`**. Installable as an app, and embeddable in other sites.
+
+### What it does
+
+**Brings appointments in from anywhere**
+
+| Source | How |
+| --- | --- |
+| Google, Outlook, Apple Calendar | paste the ICS link; it re-syncs by itself |
+| `.ics` files | drop them on the page |
+| E-mail (`.eml`) | drop it on the page — invitations *and* ordinary confirmations |
+| Pasted text | paste the mail; the date is read out of the prose |
+| By hand | for what exists nowhere else |
+
+An `.eml` with a `text/calendar` part is read exactly. A plain confirmation
+("uw afspraak is op dinsdag 4 augustus om 9:15") is *inferred*: the reader sees
+what was found, with the sentence it came from, and corrects it before it is
+kept. Attachments travel with the appointment and stay openable afterwards.
+
+**Colours the list by urgency.** Every card carries a `--heat` value (how close
+it is) and a per-tier hue, so the background answers "how soon?" before a word
+is read: emerald while it is running, red within two hours, orange today, amber
+tomorrow, cooling through teal and blue as it recedes, and fading further into
+grey the longer ago it was.
+
+**Stays on the device.** Appointments live in `localStorage`, attachment bytes
+in IndexedDB. The only network call is fetching a calendar link you added
+yourself, which goes through `/api/ics` because browsers block cross-origin
+calendar downloads. That proxy stores nothing and refuses internal addresses.
+
+### Everywhere
+
+- **Website** — `/afspraken`
+- **App** — a web manifest and a service worker make it installable; it opens
+  and works without a connection
+- **Inside other sites** — one script tag; see `/afspraken/insluiten`
+
+```html
+<script src="https://jouw-domein.nl/embed.js"
+        data-mijn-afspraken
+        data-tab="binnenkort"></script>
+```
+
+### How it is put together
+
+```
+app/
+├── afspraken/
+│   ├── page.js              the page
+│   ├── AfsprakenApp.js      tabs, list, search, keyboard shortcuts
+│   ├── useAfspraken.js      all state; everything else is derived
+│   ├── AppointmentCard.js   one appointment, collapsed and expanded
+│   ├── SourcesSheet.js      adding and managing sources
+│   ├── ImportReview.js      check-and-correct before anything is kept
+│   ├── ManualForm.js        typing one in by hand
+│   ├── afspraken.css        the design tokens and the urgency scale
+│   └── insluiten/           the embedding guide
+├── embed/afspraken/         the widget as it runs in someone else's page
+└── api/ics/route.js         read-only calendar proxy (SSRF-guarded)
+
+lib/afspraken/
+├── ics.js         RFC 5545: folding, parameters, RRULE, EXDATE, overrides
+├── tz.js          zoned wall time → real instant, via Intl
+├── email.js       MIME, RFC 2047, base64/quoted-printable, attachments
+├── datetext.js    reading dates out of Dutch and English prose
+├── model.js       one shape for everything; buckets and the urgency scale
+├── store.js       sources, sync, persistence, overrides
+├── idb.js         attachment bytes
+└── demo.js        the worked example
+
+tests/            79 tests over the parsers and the model
+```
+
+### Running it
+
+```bash
+npm install
+npm run dev     # http://localhost:3000/afspraken
+npm test        # the parsers and the model
+```
+
+The parsers are plain modules with no browser dependencies, so `node --test`
+runs them directly — `lib/afspraken/package.json` marks the folder as ESM for
+exactly that reason.
+
+### Worth knowing
+
+- Recurring appointments are expanded on the wall clock, so a weekly 09:00
+  meeting stays at 09:00 across a DST switch.
+- `RECURRENCE-ID` overrides replace the single occurrence they refer to.
+- The same meeting arriving from two sources collapses into one row, keeping
+  whatever detail either copy had.
+- Edits you make are stored apart from the synced data, so a renamed
+  appointment stays renamed after the next sync.
+- An embedded widget has its own storage (browsers separate it from the host
+  site), so pass `data-ics` when the embed needs to show something on a first
+  visit.
