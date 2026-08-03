@@ -827,3 +827,16 @@
   pointer-events: none;
   filter: drop-shadow(0 0 1px rgb(0 0 0 / 0.15));
 }
+
+/* A preview that is produced by the engine, so it waits rather than lies. */
+.tp-sheet-still {
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+  margin: 8px auto 4px;
+  background: var(--ios-fill-2);
+  cursor: default;
+  transition: opacity 0.2s;
+}
+.tp-sheet-still.is-busy { opacity: 0.5; }
+.tp-sheet-waiting { padding: 60px 20px; font-size: 14px; color: var(--ios-label-2); }

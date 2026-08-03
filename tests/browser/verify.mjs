@@ -158,6 +158,18 @@ const TOOLS = [
       await page.setInputFiles('input[type="file"]', file("rapport.pdf"));
       await page.locator('input[type="text"]').first().waitFor({ timeout: 20000 });
       await page.locator('input[type="text"]').first().fill("KOPIE");
+
+      // The preview is built by the same call as the result, so it has to
+      // appear before anything is applied.
+      await page.locator(".tp-sheet-still img").waitFor({ timeout: 30000 });
+      const first = await page.locator(".tp-sheet-still img").getAttribute("src");
+      await page.locator('input[type="range"]').first().fill("120");
+      await page.waitForFunction(
+        (was) => document.querySelector(".tp-sheet-still img")?.src !== was,
+        first,
+        { timeout: 30000 }
+      );
+
       await btn(page, /^(Toepassen|Apply)$/).click();
       await page.getByText(/Toegepast op 5|Applied to 5/).waitFor({ timeout: 25000 });
       await keep(page, tool, locale, /Opslaan|Save/, "pdf");
@@ -248,6 +260,28 @@ const TOOLS = [
     },
   },
 
+  {
+    id: "extract-images",
+    slug: { nl: "afbeeldingen-uit-pdf", en: "extract-images-from-pdf" },
+    async run(page, locale, tool) {
+      await page.setInputFiles('input[type="file"]', file("met-fotos.pdf"));
+      await page.locator(".tp-shots li").first().waitFor({ timeout: 40000 });
+      const found = await page.locator(".tp-shots li").count();
+      if (found !== 2) throw new Error(`expected the two distinct pictures, got ${found}`);
+      const labels = await page.locator(".tp-shots span").allTextContents();
+      if (!labels.some((label) => label.startsWith("320×200"))) {
+        throw new Error(`the photo did not come out at its own size: ${labels.join(" / ")}`);
+      }
+      if (!labels.some((label) => label.startsWith("256×256"))) {
+        throw new Error(`the logo did not come out at its own size: ${labels.join(" / ")}`);
+      }
+      await keep(page, tool, locale, /zip/i, "zip");
+
+      // And a document with no embedded pictures says so rather than shrugging.
+      await page.setInputFiles('input[type="file"]', file("rapport.pdf"));
+      await page.locator(".tp-note-warn").waitFor({ timeout: 40000 });
+    },
+  },
   {
     id: "unpack-email",
     slug: { nl: "email-uitpakken", en: "open-eml-file" },

@@ -1,5 +1,5 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import { writeFile, mkdir } from "node:fs/promises";
+import { writeFile, readFile, mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -74,6 +74,20 @@ const { createRequire } = await import("node:module");
 globalThis.require = createRequire(import.meta.url);
 await writeFile("fx/foto.png", png(320, 200, (x, y) => (y > 100 ? [230, 90, 60] : [40, 110, 220])));
 await writeFile("fx/logo.png", png(256, 256, (x, y) => ((x + y) % 64 < 32 ? [20, 20, 30] : [250, 250, 250])));
+
+// A document with pictures actually embedded in it, which is a different
+// thing from a page that happens to look like one.
+const withImages = await PDFDocument.create();
+const f3 = await withImages.embedFont(StandardFonts.Helvetica);
+const photo = await withImages.embedPng(await readFile("fx/foto.png"));
+const mark = await withImages.embedPng(await readFile("fx/logo.png"));
+for (let i = 1; i <= 2; i++) {
+  const page = withImages.addPage([595.28, 841.89]);
+  page.drawText(`Fotopagina ${i}`, { x: 60, y: 780, size: 18, font: f3 });
+  page.drawImage(photo, { x: 60, y: 480, width: 320, height: 200 });
+  page.drawImage(mark, { x: 60, y: 300, width: 120, height: 120 });
+}
+await writeFile("fx/met-fotos.pdf", await withImages.save());
 
 // A calendar file and a saved e-mail.
 await writeFile(

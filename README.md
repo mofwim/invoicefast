@@ -2,12 +2,12 @@ A small market of tools that do their work in the browser. No account, no
 upload, no queue — the file stays on the reader's device, and each tool says so
 on its own page rather than as a slogan in a header.
 
-**The market lives at `/nl/tools` and `/en/tools`.** Twenty-seven tools.
+**The market lives at `/nl/tools` and `/en/tools`.** Twenty-eight tools.
 
 | Category | Tools |
 | --- | --- |
 | Images | compress · convert (JPG/PNG/WebP) · resize for social media · favicon set · watermark |
-| PDF | [merge · split · organise · to images · to text · compress · properties · sign · images to PDF · watermark](#the-pdf-tools) |
+| PDF | [merge · split · organise · to images · to text · extract images · compress · properties · sign · images to PDF · watermark](#the-pdf-tools) |
 | Text and code | word count · JSON formatter · base64 · compare two texts · slug and URL encoder |
 | Generators | QR code · password · checksum (MD5/SHA) |
 | Files | open a `.eml` and pull out its attachments |
@@ -48,8 +48,10 @@ as what went into it.
 
 **pdf.js** is the other half: it *draws*. Loaded only when a tool needs to see
 the document, it gives the page grid real thumbnails instead of numbered grey
-rectangles, exports pages as images at a chosen resolution, and pulls the text
-back out with the line breaks where they were. Its worker, character maps and
+rectangles, exports pages as images at a chosen resolution, pulls the text back
+out with the line breaks where they were, and lifts the embedded photographs
+out at their own resolution — which is a different thing from a page that
+happens to look like one. Its worker, character maps and
 standard fonts are copied to `public/pdfjs/` at build time
 (`scripts/copy-pdfjs.mjs`) rather than committed, so they cannot drift out of
 step with the installed version, and each is fetched only when a document
@@ -63,6 +65,27 @@ never done silently.
 Every page grid is the same component (`components/tools/PageGrid.js`).
 Reordering works by dragging and by two buttons, because drag-and-drop alone is
 unusable from a keyboard and awkward on a phone.
+
+The watermark preview is produced by the same call that produces the result —
+one page put through the real operation and then rendered
+(`samplePage` + `usePreview`). Drawing an approximation on top of a picture
+would be faster and would eventually be wrong about something, which is the one
+thing a preview must never be.
+
+### Checking it
+
+```bash
+npm test            # 229 unit tests: the parsers, the encoders, the model
+npm run verify      # all 28 tools driven in a browser, in both languages
+```
+
+`npm run verify` is four steps in `tests/browser/`: build the fixtures, drive
+every tool with real files, **open what came out** — page counts, rotations,
+written metadata, the soundness of the zip, the exported JPEGs at 1240×1754 for
+150 dpi on A4 — and finally check that every page sits still when nobody is
+touching it. That last one is not decoration: it caught a translator that
+returned a fresh closure on every call, which made an effect re-run on every
+render and the password generator rewrite itself 91,000 times a second.
 
 ### Adding a language
 

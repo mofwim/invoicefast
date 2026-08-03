@@ -57,6 +57,10 @@ for (const locale of ["nl", "en"]) {
   const original = (await readFile("fx/rapport.pdf")).length;
   check(signedBytes.length > original, `${locale} sign → the signature is in the file (${signedBytes.length} vs ${original})`);
 
+  // the pictures pulled out of a document
+  const { stdout: pulled } = await run("unzip", ["-l", `out/extract-images-${locale}.zip`]);
+  check((pulled.match(/\.png/g) || []).length === 2, `${locale} extract → 2 pngs in the zip`);
+
   // the zip of page images
   const { stdout } = await run("unzip", ["-l", `out/pdf-to-images-${locale}.zip`]);
   const jpgs = (stdout.match(/\.jpg/g) || []).length;

@@ -22,6 +22,7 @@ const IMPLEMENTATIONS = {
   "stamp-pdf": dynamic(() => import("./stamp-pdf")),
   "pdf-to-images": dynamic(() => import("./pdf-to-images")),
   "pdf-to-text": dynamic(() => import("./pdf-to-text")),
+  "extract-images": dynamic(() => import("./extract-images")),
   "compress-pdf": dynamic(() => import("./compress-pdf")),
   "pdf-metadata": dynamic(() => import("./pdf-metadata")),
   "sign-pdf": dynamic(() => import("./sign-pdf")),
