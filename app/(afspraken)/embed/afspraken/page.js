@@ -1,6 +1,6 @@
 import EmbedFrame from "./EmbedFrame";
-import { STORAGE_KEY } from "../../../lib/afspraken/store";
-import { isTheme, themeBootScript } from "../../../lib/afspraken/theme";
+import { STORAGE_KEY } from "../../../../lib/afspraken/store";
+import { isTheme, themeBootScript } from "../../../../lib/afspraken/theme";
 
 export const metadata = {
   title: "Mijn Afspraken",

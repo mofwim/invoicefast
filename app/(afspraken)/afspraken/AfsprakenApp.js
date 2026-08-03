@@ -1,13 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Icon from "./Icons";
+import Icon from "../../../components/Icons";
 import AppointmentCard from "./AppointmentCard";
 import SourcesSheet from "./SourcesSheet";
 import ImportReview from "./ImportReview";
 import ManualForm from "./ManualForm";
 import { useAfspraken } from "./useAfspraken";
-import { BUCKETS, formatRelative, formatTimeRange, groupByDay, HOUR } from "../../lib/afspraken/model";
+import { BUCKETS, formatRelative, formatTimeRange, groupByDay, HOUR } from "../../../lib/afspraken/model";
 import "./afspraken.css";
 
 const EMPTY_COPY = {

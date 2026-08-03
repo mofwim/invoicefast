@@ -2,11 +2,11 @@
 
 import { useRef, useState } from "react";
 import Modal from "./Modal";
-import Icon from "./Icons";
-import { SOURCE_KINDS } from "../../lib/afspraken/store";
-import { formatFullDate, formatRelative } from "../../lib/afspraken/model";
-import { REMINDER_CHOICES } from "../../lib/afspraken/reminders";
-import { THEMES } from "../../lib/afspraken/theme";
+import Icon from "../../../components/Icons";
+import { SOURCE_KINDS } from "../../../lib/afspraken/store";
+import { formatFullDate, formatRelative } from "../../../lib/afspraken/model";
+import { REMINDER_CHOICES } from "../../../lib/afspraken/reminders";
+import { THEMES } from "../../../lib/afspraken/theme";
 
 const HELP = [
   {

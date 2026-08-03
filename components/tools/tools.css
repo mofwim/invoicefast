@@ -1,4 +1,4 @@
-@import "./ios-theme.css";
+@import "../../styles/ios-theme.css";
 
 /* ==========================================================================
    The market, and the shell every tool sits in.
@@ -452,7 +452,15 @@
 .tp-privacy .icon { margin-top: 2px; color: var(--ios-green); flex: none; }
 
 .tp-foot { margin-top: 34px; font-size: 13px; color: var(--ios-label-2); text-align: center; }
-.tp-foot a { color: var(--ios-blue); text-decoration: none; }
+.tp-foot a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 16px;
+  color: var(--ios-blue);
+  text-decoration: none;
+}
 
 @media (max-width: 600px) {
   .tp-title { font-size: 30px; }
@@ -840,3 +848,26 @@
 }
 .tp-sheet-still.is-busy { opacity: 0.5; }
 .tp-sheet-waiting { padding: 60px 20px; font-size: 14px; color: var(--ios-label-2); }
+
+/* A finger is not a mouse pointer. Where a control is deliberately light on a
+   desktop — the back link, the language switch — it still has to be a target
+   somebody can hit while holding a phone one-handed. */
+@media (pointer: coarse) {
+  .tp-back { min-height: 44px; padding-top: 11px; padding-bottom: 11px; }
+  .tp-langs a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; }
+  .tp-langs { padding: 2px; }
+  .tp-grid-tools button { width: 34px; height: 34px; }
+  .tp-page-tools button { width: 34px; height: 34px; }
+  /* Five choices do not fit across a phone. Let the control scroll rather
+     than let it push the whole page sideways. */
+  .tp-seg {
+    display: flex;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tp-seg::-webkit-scrollbar { display: none; }
+  .tp-seg button { min-height: 40px; padding-left: 18px; padding-right: 18px; flex: none; }
+  .tp .btn-sm { min-height: 40px; padding: 10px 15px; }
+}

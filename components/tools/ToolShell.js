@@ -1,10 +1,10 @@
-import Icon from "../../app/afspraken/Icons";
+import Icon from "../Icons";
 import { STORAGE_KEY } from "../../lib/afspraken/store";
 import { themeBootScript } from "../../lib/afspraken/theme";
 import { LOCALES, LOCALE_META } from "../../lib/i18n/locales";
 import { translator } from "../../lib/i18n/ui";
 import { alternatesFor, relatedTools } from "../../lib/tools/registry";
-import "../../app/tools.css";
+import "./tools.css";
 
 /**
  * The frame every tool sits in: back to the market, a title, what else is

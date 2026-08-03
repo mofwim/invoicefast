@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Icon from "../Icons";
+import Icon from "../../../../components/Icons";
 
 export default function CopyBlock({ code }) {
   const [copied, setCopied] = useState(false);

@@ -168,4 +168,16 @@ await writeFile(
    "Neem uw verzekeringspas mee.","","--grens",'Content-Type: text/plain; name="brief.txt"',
    "Content-Disposition: attachment; filename=\"brief.txt\"","","Dit is de bijlage.","","--grens--",""].join("\r\n")
 );
+// The files people actually drop by mistake. Each one has to produce a
+// sentence, not a stack trace and not a spinner that never stops.
+await writeFile("fx/kapot.pdf", Buffer.concat([
+  Buffer.from("%PDF-1.4\n"),
+  Buffer.from("this is not a pdf, it only starts like one\n".repeat(40)),
+]));
+await writeFile("fx/leeg.pdf", Buffer.alloc(0));
+await writeFile("fx/vermomd.pdf", await readFile("fx/foto.png"));
+await writeFile("fx/leeg.png", Buffer.alloc(0));
+await writeFile("fx/geen-mail.eml", Buffer.from("dit is gewoon een regel tekst, geen e-mail"));
+await writeFile("fx/leeg.ics", Buffer.from(""));
+
 console.log("fixtures written");

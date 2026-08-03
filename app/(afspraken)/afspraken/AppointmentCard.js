@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Icon from "./Icons";
+import Icon from "../../../components/Icons";
 import {
   formatDuration,
   formatFullDate,
@@ -11,9 +11,9 @@ import {
   initialsOf,
   mapsUrl,
   urgencyOf,
-} from "../../lib/afspraken/model";
-import { attachmentUrl } from "../../lib/afspraken/idb";
-import { buildIcs } from "../../lib/afspraken/ics";
+} from "../../../lib/afspraken/model";
+import { attachmentUrl } from "../../../lib/afspraken/idb";
+import { buildIcs } from "../../../lib/afspraken/ics";
 
 const PARTSTAT = {
   ACCEPTED: "gaat",

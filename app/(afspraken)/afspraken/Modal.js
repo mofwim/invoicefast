@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import Icon from "./Icons";
+import Icon from "../../../components/Icons";
 
 /**
  * A plain, well-behaved dialog: closes on Escape and on a click outside, moves

@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Modal from "./Modal";
-import Icon from "./Icons";
-import { formatFullDate, formatTimeRange } from "../../lib/afspraken/model";
+import Icon from "../../../components/Icons";
+import { formatFullDate, formatTimeRange } from "../../../lib/afspraken/model";
 
 const pad = (n) => String(n).padStart(2, "0");
 

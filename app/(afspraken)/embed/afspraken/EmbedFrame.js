@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import AfsprakenApp from "../../afspraken/AfsprakenApp";
-import { applyTheme, watchSystemTheme } from "../../../lib/afspraken/theme";
+import { applyTheme, watchSystemTheme } from "../../../../lib/afspraken/theme";
 
 /**
  * The widget as it runs inside someone else's page.

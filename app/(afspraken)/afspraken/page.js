@@ -1,7 +1,7 @@
 import AfsprakenApp from "./AfsprakenApp";
 import Bootstrap from "./Bootstrap";
-import { STORAGE_KEY } from "../../lib/afspraken/store";
-import { themeBootScript } from "../../lib/afspraken/theme";
+import { STORAGE_KEY } from "../../../lib/afspraken/store";
+import { themeBootScript } from "../../../lib/afspraken/theme";
 
 export const metadata = {
   title: "Mijn Afspraken — al je afspraken op één plek",

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import Icon from "../../../app/afspraken/Icons";
+import Icon from "../../Icons";
 import { COLUMNS, csvToIcs, icsToCsv } from "../../../lib/tools/icscsv";
 import { toolStrings } from "../../../lib/i18n/tools";
 

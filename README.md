@@ -33,7 +33,7 @@ Two steps, in any language:
 No page file and no routing change: one dynamic route serves the whole market,
 and implementations load lazily so a visitor downloads only the tool they
 opened while the words around it still render on the server. The palette lives
-once in `app/ios-theme.css`; shared chrome strings in `lib/i18n/ui.js`, each
+once in `styles/ios-theme.css`; shared chrome strings in `lib/i18n/ui.js`, each
 tool's own strings in `lib/i18n/tools.js` with the languages side by side per
 key, so a missing translation is visible at a glance.
 
@@ -57,10 +57,18 @@ standard fonts are copied to `public/pdfjs/` at build time
 step with the installed version, and each is fetched only when a document
 actually asks for it.
 
-Where the two meet is **compress**, which offers both and says plainly what
-each costs: re-saving cleanly changes nothing about the pages; redrawing them
-as pictures makes a scan far smaller and stops the text being text. It is
-never done silently.
+**Compressing** is where the two meet, and it is done at the level of the
+images rather than the page. The naive way — redraw every page as a picture —
+makes a text document *bigger*, because a page of type compresses far worse as
+pixels than as glyphs, and where it does win it wins by destroying what people
+came for. So the compressor walks the object graph, rewrites only the embedded
+image streams, and carries every text and vector object across untouched: a
+1.8 MB scan comes down to 470 kB, and a document with text and photographs
+together halves while every word stays a word. Anything it cannot decode
+safely — a transparent image, a CMYK JPEG, a stencil mask — is left exactly as
+it was, and the page says how many and why. Three rungs are offered in order of
+what they cost, and the old page-rasteriser is kept as the last one for the
+file that defeats the other two.
 
 Every page grid is the same component (`components/tools/PageGrid.js`).
 Reordering works by dragging and by two buttons, because drag-and-drop alone is
@@ -79,13 +87,25 @@ npm test            # 229 unit tests: the parsers, the encoders, the model
 npm run verify      # all 28 tools driven in a browser, in both languages
 ```
 
-`npm run verify` is four steps in `tests/browser/`: build the fixtures, drive
-every tool with real files, **open what came out** — page counts, rotations,
-written metadata, the soundness of the zip, the exported JPEGs at 1240×1754 for
-150 dpi on A4 — and finally check that every page sits still when nobody is
-touching it. That last one is not decoration: it caught a translator that
+`npm run verify` is six passes in `tests/browser/`, and each looks for a
+different kind of wrong:
+
+| Pass | What it would catch |
+| --- | --- |
+| `verify` | a tool that does not do its job — 58 runs across both languages |
+| `inspect` | **opens what came out**: page counts, rotations, written metadata, whether the text survived compression, the soundness of the zip, the exported JPEGs at 1240×1754 for 150 dpi on A4 |
+| `robust` | a wrong file: corrupt, empty, a photo renamed `.pdf`. A stack trace, a spinner that never stops, and saying nothing at all all count as failures |
+| `phone` | 390 px with touch: sideways scrolling, targets a thumb cannot hit, signing with a finger |
+| `phone` | for a screen reader: unnamed controls, the heading count, and the language a page claims to be in |
+| `loop` | a page that will not sit still when nobody is touching it |
+
+None of these is decoration. Between them they caught: a translator that
 returned a fresh closure on every call, which made an effect re-run on every
-render and the password generator rewrite itself 91,000 times a second.
+render and the password generator rewrite itself 91,000 times a second; sliders
+and switches with no name for a screen reader to say, because a `for` pointing
+at nothing cancels the fallback that would have named them; and every Dutch
+page declaring itself `<html lang="en">`, which is why the site now has a root
+layout per language rather than one for all of them.
 
 ### Adding a language
 

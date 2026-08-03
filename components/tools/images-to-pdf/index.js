@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { Actions, Field, FileDrop, Note, Panel, Segmented, Slider, download, formatBytes, Icon } from "../ui";
 import { toolStrings } from "../../../lib/i18n/tools";
 import { imagesToPdf, save } from "../../../lib/tools/pdf";
+import { describeError } from "../../../lib/tools/errors";
 
 export default function ImagesToPdf({ locale = "nl" }) {
   const t = toolStrings("images-to-pdf", locale);
@@ -15,14 +16,41 @@ export default function ImagesToPdf({ locale = "nl" }) {
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
 
-  const take = useCallback((files) => {
-    setError("");
-    setResult(null);
-    setItems((previous) => [
-      ...previous,
-      ...files.map((file, i) => ({ file, key: `${file.name}-${file.size}-${previous.length + i}` })),
-    ]);
-  }, []);
+  /**
+   * Only JPG and PNG go in, and that is checked here rather than at the end.
+   * A file that cannot become a page should be refused while the reader is
+   * still looking at the drop zone — not three settings later, when they have
+   * forgotten which file they added.
+   */
+  const take = useCallback(
+    (files) => {
+      setResult(null);
+
+      const usable = [];
+      const refused = [];
+      for (const file of files) {
+        const looksRight = /image\/(jpeg|png)/.test(file.type) || /\.(jpe?g|png)$/i.test(file.name);
+        if (looksRight && file.size > 0) usable.push(file);
+        else refused.push(file.name);
+      }
+
+      setError(
+        refused.length
+          ? t(refused.length === files.length ? "noneUsable" : "someRefused", {
+              names: refused.slice(0, 3).join(", "),
+              n: refused.length,
+            })
+          : ""
+      );
+      if (!usable.length) return;
+
+      setItems((previous) => [
+        ...previous,
+        ...usable.map((file, i) => ({ file, key: `${file.name}-${file.size}-${previous.length + i}` })),
+      ]);
+    },
+    [t]
+  );
 
   const move = (index, by) =>
     setItems((previous) => {
@@ -41,7 +69,7 @@ export default function ImagesToPdf({ locale = "nl" }) {
       const doc = await imagesToPdf(items.map((item) => item.file), { pageSize, margin, background });
       setResult({ ...(await save(doc, { name: "afbeeldingen.pdf" })), pages: doc.getPageCount() });
     } catch (err) {
-      setError(err.message);
+      setError(describeError(t, err));
     } finally {
       setBusy("");
     }

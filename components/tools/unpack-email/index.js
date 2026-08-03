@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import Icon from "../../../app/afspraken/Icons";
+import Icon from "../../Icons";
 import { bytesToBinaryString, htmlToText, parseEml } from "../../../lib/afspraken/email";
 import { parseIcs } from "../../../lib/afspraken/ics";
 import { toolStrings } from "../../../lib/i18n/tools";

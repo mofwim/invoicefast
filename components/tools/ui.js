@@ -10,7 +10,7 @@
  */
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import Icon from "../../app/afspraken/Icons";
+import Icon from "../Icons";
 
 export { formatBytes } from "../../lib/tools/image";
 
@@ -134,15 +134,25 @@ export function FileDrop({
 }
 
 /** A labelled control row, so every tool's settings line up the same way. */
+/**
+ * A labelled row.
+ *
+ * `htmlFor` is set only when the caller asked for an id — the render-prop
+ * form. Without it the label falls back to naming its first labelable
+ * descendant, which is what makes a slider or a switch announce itself. A
+ * `for` pointing at an id that nothing carries is worse than no `for` at all:
+ * it cancels that fallback, and the control ends up with no name.
+ */
 export function Field({ label, hint, children }) {
   const id = useId();
+  const addressed = typeof children === "function";
   return (
-    <label className="tp-field" htmlFor={id}>
+    <label className="tp-field" htmlFor={addressed ? id : undefined}>
       <span className="tp-field-label">
         {label}
         {hint && <small>{hint}</small>}
       </span>
-      {typeof children === "function" ? children(id) : children}
+      {addressed ? children(id) : children}
     </label>
   );
 }

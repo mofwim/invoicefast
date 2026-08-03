@@ -30,24 +30,24 @@ import {
   setOverride,
   syncAllSources,
   syncSource,
-} from "../../lib/afspraken/store";
+} from "../../../lib/afspraken/store";
 import {
   DEFAULT_SOON_DAYS,
   matchesQuery,
   splitIntoBuckets,
-} from "../../lib/afspraken/model";
-import { demoEvents } from "../../lib/afspraken/demo";
+} from "../../../lib/afspraken/model";
+import { demoEvents } from "../../../lib/afspraken/demo";
 import {
   DEFAULT_THEME,
   applyTheme,
   isTheme,
   watchSystemTheme,
-} from "../../lib/afspraken/theme";
+} from "../../../lib/afspraken/theme";
 import {
   askPermission,
   notificationPermission,
   scheduleReminders,
-} from "../../lib/afspraken/reminders";
+} from "../../../lib/afspraken/reminders";
 
 const TICK_MS = 30000;
 const AUTO_SYNC_MS = 10 * 60000;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { computeTotals } from "../lib/pdf";
+import { computeTotals } from "../../lib/pdf";
 
 const CUR = { USD: "$", EUR: "\u20ac", GBP: "\u00a3" };
 
@@ -69,7 +69,7 @@ export default function Home() {
   const canDownload = data.fromName && data.toName && data.items.some((it) => it.desc);
 
   async function download() {
-    const { generatePdf } = await import("../lib/pdf");
+    const { generatePdf } = await import("../../lib/pdf");
     const doc = generatePdf(data, paid);
     doc.save(`${data.docType}-${data.number || "draft"}.pdf`);
   }

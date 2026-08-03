@@ -1,12 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Icon from "../../app/afspraken/Icons";
+import Icon from "../Icons";
 import { LOCALES, LOCALE_META } from "../../lib/i18n/locales";
 import { translator } from "../../lib/i18n/ui";
 import { categoriesForLocale, toolsForLocale } from "../../lib/tools/registry";
 import { LanguageSwitch } from "./ToolShell";
-import "../../app/tools.css";
+import "./tools.css";
 
 /**
  * The hub.

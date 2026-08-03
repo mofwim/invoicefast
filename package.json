@@ -11,7 +11,7 @@
     "prebuild": "node scripts/copy-pdfjs.mjs",
     "predev": "node scripts/copy-pdfjs.mjs",
     "postinstall": "node scripts/copy-pdfjs.mjs",
-    "verify": "node tests/browser/fixtures.mjs && node tests/browser/verify.mjs && node tests/browser/inspect.mjs && node tests/browser/loop.mjs"
+    "verify": "node tests/browser/fixtures.mjs && node tests/browser/verify.mjs && node tests/browser/inspect.mjs && node tests/browser/robust.mjs && node tests/browser/phone.mjs && node tests/browser/loop.mjs"
   },
   "dependencies": {
     "jspdf": "^2.5.1",
