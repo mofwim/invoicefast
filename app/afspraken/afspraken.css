@@ -1,3 +1,5 @@
+@import "../ios-theme.css";
+
 /* ==========================================================================
    Mijn Afspraken
    --------------------------------------------------------------------------
@@ -14,35 +16,10 @@
 
 .ma-page,
 .ma {
-  /* ---- iOS system colours, light ---- */
-  --ios-bg: #f2f2f7;            /* systemGroupedBackground */
-  --ios-card: #ffffff;          /* secondarySystemGroupedBackground */
-  --ios-raised: #ffffff;
-  --ios-label: #000000;
-  --ios-label-2: rgba(60, 60, 67, 0.6);
-  --ios-label-3: rgba(60, 60, 67, 0.3);
-  --ios-separator: rgba(60, 60, 67, 0.2);
-  --ios-fill: rgba(118, 118, 128, 0.12);
-  --ios-fill-2: rgba(118, 118, 128, 0.08);
-
-  --ios-blue: #007aff;
-  --ios-red: #ff3b30;
-  --ios-green: #34c759;
-  --ios-gray: #8e8e93;
-
-  --ios-blur: saturate(180%) blur(20px);
-  --ios-pill: #ffffff;
-  --ios-pill-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 1px 1px rgba(0, 0, 0, 0.04);
-
-  /* how strongly a tier's hue is painted onto a row */
+  /* Only what the appointment list adds on top of the shared palette:
+     how strongly a tier's hue is painted onto a row. */
   --tint-l: 50%;
   --tint-strength: 0.16;
-
-  --radius: 12px;
-  --radius-sm: 9px;
-
-  /* iOS-ish spring: overshoots a hair, settles fast */
-  --ease: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 /* Dark lives behind one attribute, so "light", "dark" and "follow the device"
@@ -51,24 +28,6 @@
    query instead would need two copies of this block to stay in step. */
 [data-theme="dark"] .ma-page,
 [data-theme="dark"] .ma {
-  --ios-bg: #000000;
-  --ios-card: #1c1c1e;
-  --ios-raised: #1c1c1e;
-  --ios-label: #ffffff;
-  --ios-label-2: rgba(235, 235, 245, 0.6);
-  --ios-label-3: rgba(235, 235, 245, 0.3);
-  --ios-separator: rgba(84, 84, 88, 0.6);
-  --ios-fill: rgba(118, 118, 128, 0.24);
-  --ios-fill-2: rgba(118, 118, 128, 0.16);
-
-  --ios-blue: #0a84ff;
-  --ios-red: #ff453a;
-  --ios-green: #30d158;
-  --ios-gray: #98989f;
-
-  --ios-pill: #636366;
-  --ios-pill-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
-
   --tint-l: 62%;
   --tint-strength: 0.26;
 }
@@ -147,7 +106,7 @@
   letter-spacing: -0.02em;
   opacity: 0;
   transform: translateY(6px);
-  transition: opacity 0.2s, transform 0.25s var(--ease);
+  transition: opacity 0.2s, transform 0.25s var(--ios-ease);
   pointer-events: none;
 }
 .ma-navbar[data-condensed] .ma-navbar-title { opacity: 1; transform: none; }
@@ -219,13 +178,13 @@
   margin-bottom: 14px;
   padding: 12px 14px;
   border: 0;
-  border-radius: var(--radius);
+  border-radius: var(--ios-radius);
   background: color-mix(in srgb, var(--ios-green) 12%, var(--ios-card));
   color: var(--ios-label);
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition: transform 0.15s var(--ease);
+  transition: transform 0.15s var(--ios-ease);
 }
 .ma-upnext:active { transform: scale(0.985); }
 
@@ -280,7 +239,7 @@
   background: var(--ios-pill);
   box-shadow: var(--ios-pill-shadow);
   transform: translateX(calc(var(--seg, 0) * 100%));
-  transition: transform 0.32s var(--ease);
+  transition: transform 0.32s var(--ios-ease);
   z-index: -1;
 }
 
@@ -335,7 +294,7 @@
 
 /* One rounded container per day; rows live inside it, separated by hairlines. */
 .ma-day-items {
-  border-radius: var(--radius);
+  border-radius: var(--ios-radius);
   background: var(--ios-card);
   overflow: hidden;
 }
@@ -470,7 +429,7 @@
 
 .ap-side { display: flex; align-items: center; gap: 5px; flex: none; }
 .ap-rel { font-size: 13px; color: var(--ios-label-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
-.ap-chev { display: inline-flex; color: var(--ios-label-3); transition: transform 0.25s var(--ease); }
+.ap-chev { display: inline-flex; color: var(--ios-label-3); transition: transform 0.25s var(--ios-ease); }
 .ap[data-open] .ap-chev { transform: rotate(90deg); }
 
 /* ---- swipe to delete ---- */
@@ -499,7 +458,7 @@
 }
 .ap-swipe button:active { filter: brightness(0.88); }
 
-.ap-slide { position: relative; z-index: 1; transition: transform 0.32s var(--ease); }
+.ap-slide { position: relative; z-index: 1; transition: transform 0.32s var(--ios-ease); }
 .ap[data-dragging] .ap-slide { transition: none; }
 
 /* ---- expanded ---- */
@@ -509,7 +468,7 @@
   z-index: 1;
   padding: 2px 16px 16px 74px;
   background: linear-gradient(var(--tint), var(--tint)), var(--ios-card);
-  animation: ma-reveal 0.24s var(--ease);
+  animation: ma-reveal 0.24s var(--ios-ease);
 }
 @keyframes ma-reveal {
   from { opacity: 0; transform: translateY(-4px); }
@@ -654,7 +613,7 @@
   cursor: pointer;
   text-decoration: none;
   white-space: nowrap;
-  transition: opacity 0.15s, transform 0.15s var(--ease);
+  transition: opacity 0.15s, transform 0.15s var(--ios-ease);
 }
 .ma .btn:active { opacity: 0.55; transform: scale(0.97); }
 .ma .btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
@@ -680,7 +639,7 @@
 .ma-empty,
 .ma-onboard {
   padding: 34px 22px;
-  border-radius: var(--radius);
+  border-radius: var(--ios-radius);
   background: var(--ios-card);
   text-align: center;
 }
@@ -730,7 +689,7 @@
   font-size: 15px;
   line-height: 1.35;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.22);
-  animation: ma-rise 0.3s var(--ease);
+  animation: ma-rise 0.3s var(--ios-ease);
   max-width: min(92vw, 460px);
 }
 .ma-busy { background: rgba(28, 28, 30, 0.92); color: #fff; -webkit-backdrop-filter: var(--ios-blur); backdrop-filter: var(--ios-blur); }
@@ -796,7 +755,7 @@
 .ma-skeleton { display: flex; flex-direction: column; gap: 10px; padding-top: 92px; }
 .ma-skeleton-row {
   height: 62px;
-  border-radius: var(--radius);
+  border-radius: var(--ios-radius);
   background: var(--ios-card);
   opacity: 0.7;
   animation: ma-breathe 1.4s ease-in-out infinite;
@@ -827,7 +786,7 @@
   border-radius: 14px 14px 0 0;
   background: var(--ios-bg);
   box-shadow: 0 -2px 40px rgba(0, 0, 0, 0.3);
-  animation: ma-sheet-up 0.42s var(--ease);
+  animation: ma-sheet-up 0.42s var(--ios-ease);
   overflow: hidden;
 }
 .ma-modal-wide { max-width: 720px; }
@@ -898,7 +857,7 @@
 
 .ma-help { margin-top: 10px; font-size: 14px; color: var(--ios-label-2); }
 .ma-help summary { cursor: pointer; color: var(--ios-blue); width: fit-content; padding: 4px 0; }
-.ma-help ul { list-style: none; margin: 10px 0 0; padding: 14px; border-radius: var(--radius); background: var(--ios-card); display: flex; flex-direction: column; gap: 12px; }
+.ma-help ul { list-style: none; margin: 10px 0 0; padding: 14px; border-radius: var(--ios-radius); background: var(--ios-card); display: flex; flex-direction: column; gap: 12px; }
 .ma-help li { display: flex; flex-direction: column; gap: 3px; line-height: 1.45; }
 .ma-help strong { color: var(--ios-label); font-size: 14px; font-weight: 600; }
 
@@ -912,13 +871,13 @@
   align-items: center;
   gap: 6px;
   padding: 26px 18px;
-  border-radius: var(--radius);
+  border-radius: var(--ios-radius);
   background: var(--ios-card);
   color: var(--ios-label-2);
   font-size: 15px;
   text-align: center;
   cursor: pointer;
-  transition: background-color 0.15s, transform 0.15s var(--ease);
+  transition: background-color 0.15s, transform 0.15s var(--ios-ease);
 }
 .ma-drop:active { transform: scale(0.985); }
 .ma-drop.is-dragging { background: color-mix(in srgb, var(--ios-blue) 12%, var(--ios-card)); }
@@ -932,7 +891,7 @@
   padding: 12px 14px;
   margin-bottom: 10px;
   border: 0;
-  border-radius: var(--radius);
+  border-radius: var(--ios-radius);
   background: var(--ios-card);
   color: var(--ios-label);
   font: inherit;
@@ -941,7 +900,7 @@
 }
 .ma-paste:focus { outline: 2px solid var(--ios-blue); outline-offset: -2px; }
 
-.ma-empty-note { margin: 0; padding: 16px; border-radius: var(--radius); background: var(--ios-card); font-size: 15px; color: var(--ios-label-2); line-height: 1.5; }
+.ma-empty-note { margin: 0; padding: 16px; border-radius: var(--ios-radius); background: var(--ios-card); font-size: 15px; color: var(--ios-label-2); line-height: 1.5; }
 
 /* A list of rows inside one rounded container, iOS-style. */
 .ma-sources,
@@ -949,7 +908,7 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  border-radius: var(--radius);
+  border-radius: var(--ios-radius);
   background: var(--ios-card);
   overflow: hidden;
 }
@@ -1002,7 +961,7 @@
   font-size: 16px;
   letter-spacing: -0.01em;
 }
-.ma-field:first-of-type { border-radius: var(--radius) var(--radius) 0 0; }
+.ma-field:first-of-type { border-radius: var(--ios-radius) var(--ios-radius) 0 0; }
 .ma-field + .ma-field { position: relative; }
 .ma-field + .ma-field::before {
   content: "";
@@ -1011,7 +970,7 @@
   height: 0.5px;
   background: var(--ios-separator);
 }
-.ma-check { border-radius: 0 0 var(--radius) var(--radius); cursor: pointer; position: relative; }
+.ma-check { border-radius: 0 0 var(--ios-radius) var(--ios-radius); cursor: pointer; position: relative; }
 .ma-check::before {
   content: "";
   position: absolute;
@@ -1044,7 +1003,7 @@
   background: rgba(120, 120, 128, 0.32);
   cursor: pointer;
   flex: none;
-  transition: background-color 0.28s var(--ease);
+  transition: background-color 0.28s var(--ios-ease);
 }
 .ma-check input::after {
   content: "";
@@ -1054,7 +1013,7 @@
   border-radius: 50%;
   background: #fff;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), 0 1px 1px rgba(0, 0, 0, 0.08);
-  transition: transform 0.28s var(--ease);
+  transition: transform 0.28s var(--ios-ease);
 }
 .ma-check input:checked { background: var(--ios-green); }
 .ma-check input:checked::after { transform: translateX(20px); }
@@ -1118,7 +1077,7 @@
   gap: 10px;
   margin: 8px 0 0;
   padding: 13px 14px;
-  border-radius: var(--radius);
+  border-radius: var(--ios-radius);
   background: rgba(255, 149, 0, 0.15);
   color: #a35400;
   font-size: 15px;
@@ -1132,7 +1091,7 @@
   display: flex;
   gap: 12px;
   padding: 14px;
-  border-radius: var(--radius);
+  border-radius: var(--ios-radius);
   background: var(--ios-card);
   opacity: 0.5;
   transition: opacity 0.2s;
@@ -1208,7 +1167,7 @@
 @media (min-width: 700px) {
   /* Wider than a phone: a centred form sheet, the way iPadOS shows one. */
   .ma-backdrop { align-items: center; padding: 24px; }
-  .ma-modal { border-radius: 14px; max-height: 86vh; animation: ma-sheet-in 0.3s var(--ease); }
+  .ma-modal { border-radius: 14px; max-height: 86vh; animation: ma-sheet-in 0.3s var(--ios-ease); }
   .ma-grabber { display: none; }
   .ma-modal-head { padding-top: 18px; }
   .ma-review-actions { flex-direction: row; }

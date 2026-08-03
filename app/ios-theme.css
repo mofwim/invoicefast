@@ -1,0 +1,67 @@
+/* ==========================================================================
+   Shared surface
+   --------------------------------------------------------------------------
+   One palette for every tool in the market, so a new tool inherits the look
+   instead of re-inventing it. Values are Apple's system colours; dark sits
+   behind a single `data-theme` attribute that a script in each page sets
+   before the first paint.
+
+   Names are all `--ios-*` so nothing collides with InvoiceFast's own tokens.
+   ========================================================================== */
+
+:root {
+  --ios-bg: #f2f2f7;            /* systemGroupedBackground */
+  --ios-card: #ffffff;          /* secondarySystemGroupedBackground */
+  --ios-raised: #ffffff;
+  --ios-label: #000000;
+  --ios-label-2: rgba(60, 60, 67, 0.6);
+  --ios-label-3: rgba(60, 60, 67, 0.3);
+  --ios-separator: rgba(60, 60, 67, 0.2);
+  --ios-fill: rgba(118, 118, 128, 0.12);
+  --ios-fill-2: rgba(118, 118, 128, 0.08);
+
+  --ios-blue: #007aff;
+  --ios-red: #ff3b30;
+  --ios-green: #34c759;
+  --ios-orange: #ff9500;
+  --ios-purple: #af52de;
+  --ios-teal: #30b0c7;
+  --ios-indigo: #5856d6;
+  --ios-pink: #ff2d55;
+  --ios-gray: #8e8e93;
+
+  --ios-blur: saturate(180%) blur(20px);
+  --ios-pill: #ffffff;
+  --ios-pill-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 1px 1px rgba(0, 0, 0, 0.04);
+
+  --ios-radius: 12px;
+  --ios-radius-sm: 9px;
+
+  /* iOS-ish spring: overshoots a hair, settles fast */
+  --ios-ease: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+[data-theme="dark"] {
+  --ios-bg: #000000;
+  --ios-card: #1c1c1e;
+  --ios-raised: #1c1c1e;
+  --ios-label: #ffffff;
+  --ios-label-2: rgba(235, 235, 245, 0.6);
+  --ios-label-3: rgba(235, 235, 245, 0.3);
+  --ios-separator: rgba(84, 84, 88, 0.6);
+  --ios-fill: rgba(118, 118, 128, 0.24);
+  --ios-fill-2: rgba(118, 118, 128, 0.16);
+
+  --ios-blue: #0a84ff;
+  --ios-red: #ff453a;
+  --ios-green: #30d158;
+  --ios-orange: #ff9f0a;
+  --ios-purple: #bf5af2;
+  --ios-teal: #40c8e0;
+  --ios-indigo: #5e5ce6;
+  --ios-pink: #ff375f;
+  --ios-gray: #98989f;
+
+  --ios-pill: #636366;
+  --ios-pill-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+}

@@ -261,6 +261,26 @@ test("writes a calendar that parses back to the same appointment", () => {
   assert.equal(events[0].people[0].email, "jansen@example.nl");
 });
 
+test("an all-day event keeps its date when written back", () => {
+  // Read as local midnight, so it must be written from the local clock too —
+  // taking the UTC date moves it a day earlier east of Greenwich.
+  const source = event([
+    "UID:allday-roundtrip@test",
+    "SUMMARY:Verjaardag",
+    "DTSTART;VALUE=DATE:20260810",
+    "DTEND;VALUE=DATE:20260811",
+  ]);
+
+  const [before] = parseIcs(source).events;
+  const written = buildIcs([before]);
+  assert.match(written, /DTSTART;VALUE=DATE:20260810/);
+  assert.match(written, /DTEND;VALUE=DATE:20260811/);
+
+  const [after] = parseIcs(written).events;
+  assert.equal(after.start, before.start);
+  assert.equal(after.allDay, true);
+});
+
 test("folds long lines at 75 octets", () => {
   const ics = buildIcs([
     { uid: "long@test", title: "x".repeat(300), start: Date.UTC(2026, 7, 3, 9), end: Date.UTC(2026, 7, 3, 10) },

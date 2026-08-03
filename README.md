@@ -1,8 +1,31 @@
-This repository holds two products:
+A small market of tools that do their work in the browser. No account, no
+upload, no queue — the file stays on the reader's device, and each tool says so
+on its own page rather than as a slogan in a header.
 
-- **InvoiceFast** (`/`) — a free invoice generator.
-- **Mijn Afspraken** (`/afspraken`) — an appointment overview that pulls
-  appointments out of a calendar and out of e-mail. See [its section below](#mijn-afspraken--al-je-afspraken-op-één-plek).
+**The market lives at `/tools`.**
+
+| Tool | What it does |
+| --- | --- |
+| [Mijn Afspraken](#mijn-afspraken--al-je-afspraken-op-één-plek) (`/afspraken`) | Appointments out of a calendar *and* out of e-mail, in three tabs |
+| E-mail uitpakken (`/tools/email-uitpakken`) | Open a `.eml` and save its attachments |
+| Agenda omzetten (`/tools/agenda-omzetten`) | ICS → CSV for a spreadsheet, and back again |
+| InvoiceFast (`/`) | A free invoice generator |
+
+### Adding a tool
+
+Two steps, on purpose:
+
+1. An entry in `lib/tools/registry.js` — name, tagline, category, icon, tint.
+   The hub renders straight from that list.
+2. A page under `app/tools/<slug>/` wrapped in `ToolShell`, which supplies the
+   back link, the title, the shared surface and the privacy note.
+
+The palette lives once in `app/ios-theme.css`, so a new tool inherits the look
+instead of re-inventing it, and follows the same light/dark preference.
+
+The engines are shared too: `E-mail uitpakken` is the MIME reader written for
+Mijn Afspraken, and `Agenda omzetten` is its iCalendar reader plus the lenient
+date reader that copes with `half elf` in a spreadsheet cell.
 
 ---
 
@@ -238,7 +261,7 @@ lib/afspraken/
 ├── idb.js         attachment bytes
 └── demo.js        the worked example
 
-tests/            138 tests; import.test.mjs is the corpus of real mail shapes
+tests/            151 tests; import.test.mjs is the corpus of real mail shapes
 ```
 
 ### Running it
