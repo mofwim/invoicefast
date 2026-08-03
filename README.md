@@ -175,6 +175,15 @@ There is no push server here, so the honest limit is stated in the settings
 too: it arrives while the page or the installed app is open, including in the
 background. A reminder whose moment already passed is never fired late.
 
+**Lets you delete, and lets you take it back.** What a delete means depends on
+where the appointment came from, and the difference is respected rather than
+papered over. Something typed here is really removed. Something from a
+subscribed calendar cannot be — the next sync would return it — so it is
+remembered as deleted, which keeps it gone *and* keeps it restorable under
+**Verwijderd** in the settings. Either way it takes two taps, the confirmation
+disarms itself after a few seconds, and the toast offers **Ongedaan maken**.
+Edits survive a delete-and-restore round trip.
+
 **Stays on the device.** Appointments live in `localStorage`, attachment bytes
 in IndexedDB. The only network call is fetching a calendar link you added
 yourself, which goes through `/api/ics` because browsers block cross-origin
@@ -221,7 +230,7 @@ lib/afspraken/
 ├── idb.js         attachment bytes
 └── demo.js        the worked example
 
-tests/            121 tests; import.test.mjs is the corpus of real mail shapes
+tests/            128 tests; import.test.mjs is the corpus of real mail shapes
 ```
 
 ### Running it

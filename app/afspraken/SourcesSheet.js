@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import Modal from "./Modal";
 import Icon from "./Icons";
 import { SOURCE_KINDS } from "../../lib/afspraken/store";
-import { formatRelative } from "../../lib/afspraken/model";
+import { formatFullDate, formatRelative } from "../../lib/afspraken/model";
 import { REMINDER_CHOICES } from "../../lib/afspraken/reminders";
 
 const HELP = [
@@ -47,6 +47,9 @@ export default function SourcesSheet({
   onDemo,
   onReminders,
   permission,
+  deleted = [],
+  onUndelete,
+  onUndeleteAll,
 }) {
   const [url, setUrl] = useState("");
   const [paste, setPaste] = useState("");
@@ -237,6 +240,33 @@ export default function SourcesSheet({
           </ul>
         )}
       </section>
+
+      {deleted.length > 0 && (
+        <section className="ma-section">
+          <div className="ma-section-head">
+            <h3><Icon name="trash" size={15} /> Verwijderd ({deleted.length})</h3>
+            <button type="button" className="btn btn-quiet btn-sm" onClick={onUndeleteAll}>
+              Alles terugzetten
+            </button>
+          </div>
+          <p className="ma-fineprint ma-note-inline">
+            Deze komen uit een gekoppelde bron. Ze blijven weg na het verversen, tot je ze terugzet.
+          </p>
+          <ul className="ma-deleted">
+            {deleted.map((entry) => (
+              <li key={entry.key}>
+                <span className="ma-deleted-text">
+                  <strong>{entry.title}</strong>
+                  {entry.start > 0 && <span>{formatFullDate(entry.start)}</span>}
+                </span>
+                <button type="button" className="btn btn-quiet btn-sm" onClick={() => onUndelete(entry.key)}>
+                  Terugzetten
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="ma-section">
         <h3><Icon name="settings" size={15} /> Instellingen</h3>

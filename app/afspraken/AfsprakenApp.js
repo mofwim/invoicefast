@@ -270,7 +270,7 @@ export default function AfsprakenApp({ variant = "full", initialTab = "binnenkor
                     appointment={appointment}
                     now={app.now}
                     onEdit={app.editAppointment}
-                    onHide={app.hideAppointment}
+                    onDelete={app.removeAppointment}
                   />
                 ))}
               </div>
@@ -307,7 +307,12 @@ export default function AfsprakenApp({ variant = "full", initialTab = "binnenkor
       {app.message && (
         <div className={`ma-toast ma-toast-${app.message.kind}`} role="status" aria-live="polite">
           <Icon name={app.message.kind === "error" ? "alert" : "check"} size={16} />
-          {app.message.text}
+          <span>{app.message.text}</span>
+          {app.message.action && (
+            <button type="button" className="ma-toast-action" onClick={app.message.action.run}>
+              {app.message.action.label}
+            </button>
+          )}
         </div>
       )}
 
@@ -336,6 +341,9 @@ export default function AfsprakenApp({ variant = "full", initialTab = "binnenkor
         onSettings={app.updateSettings}
         onReminders={app.enableReminders}
         permission={app.permission}
+        deleted={app.deleted}
+        onUndelete={app.undelete}
+        onUndeleteAll={app.undeleteAll}
         onExport={app.download}
         onDemo={() => {
           app.loadDemo();

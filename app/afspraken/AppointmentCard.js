@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Icon from "./Icons";
 import {
   formatDuration,
@@ -107,9 +107,18 @@ function EditPanel({ appointment, onSave, onCancel }) {
   );
 }
 
-export default function AppointmentCard({ appointment, now, onEdit, onHide }) {
+export default function AppointmentCard({ appointment, now, onEdit, onDelete }) {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+
+  // Stepping away from the question is an answer: leave it armed and the next
+  // stray tap deletes something.
+  useEffect(() => {
+    if (!confirmingDelete) return undefined;
+    const timer = setTimeout(() => setConfirmingDelete(false), 5000);
+    return () => clearTimeout(timer);
+  }, [confirmingDelete]);
 
   const urgency = urgencyOf(appointment, now);
   const cancelled = appointment.status === "CANCELLED";
@@ -354,13 +363,36 @@ export default function AppointmentCard({ appointment, now, onEdit, onHide }) {
               <button type="button" className="btn btn-quiet btn-sm" onClick={() => setEditing(true)}>
                 <Icon name="pencil" size={14} /> Aanpassen
               </button>
-              <button
-                type="button"
-                className="btn btn-quiet btn-sm ap-hide"
-                onClick={() => onHide(appointment.dedupeKey)}
-              >
-                <Icon name="close" size={14} /> Verbergen
-              </button>
+              {confirmingDelete ? (
+                <span className="ap-confirm">
+                  <button
+                    type="button"
+                    className="btn btn-danger btn-sm"
+                    onClick={() => {
+                      setConfirmingDelete(false);
+                      onDelete(appointment);
+                    }}
+                    autoFocus
+                  >
+                    <Icon name="trash" size={14} /> Verwijderen
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-quiet btn-sm"
+                    onClick={() => setConfirmingDelete(false)}
+                  >
+                    Nee, laat staan
+                  </button>
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  className="btn btn-quiet btn-sm ap-remove"
+                  onClick={() => setConfirmingDelete(true)}
+                >
+                  <Icon name="trash" size={14} /> Verwijderen
+                </button>
+              )}
             </div>
           )}
         </div>

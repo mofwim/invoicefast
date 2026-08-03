@@ -15,13 +15,17 @@ import {
   addCalendarUrl,
   addManualAppointment,
   buildTimeline,
+  deleteAppointment,
   emptyState,
   exportIcs,
   ingestEvents,
+  listDeleted,
   loadState,
   readFile,
   readPastedText,
   removeSource,
+  restoreAllDeleted,
+  restoreAppointment,
   saveState,
   setOverride,
   syncAllSources,
@@ -129,7 +133,9 @@ export function useAfspraken({ initialTab = "binnenkort" } = {}) {
 
   useEffect(() => {
     if (!message) return undefined;
-    const timer = setTimeout(() => setMessage(null), message.kind === "error" ? 8000 : 4000);
+    // An offer to undo needs long enough to notice it and reach for it.
+    const life = message.action ? 9000 : message.kind === "error" ? 8000 : 4000;
+    const timer = setTimeout(() => setMessage(null), life);
     return () => clearTimeout(timer);
   }, [message]);
 
@@ -318,13 +324,47 @@ export function useAfspraken({ initialTab = "binnenkort" } = {}) {
     [update]
   );
 
-  const hideAppointment = useCallback(
+  /**
+   * Delete an appointment, with the way back attached to the confirmation.
+   * A tool holding someone's appointments has no business losing one to a
+   * mis-tap, so the undo is offered in the same breath.
+   */
+  const removeAppointment = useCallback(
+    (appointment) => {
+      const before = state;
+      const { state: next, permanent } = deleteAppointment(state, appointment);
+      dirty.current = true;
+      setState(next);
+      setMessage({
+        kind: "ok",
+        text: permanent ? "Afspraak verwijderd." : "Afspraak verwijderd — hij blijft weg na het verversen.",
+        action: {
+          label: "Ongedaan maken",
+          run: () => {
+            dirty.current = true;
+            setState(before);
+            setMessage({ kind: "ok", text: "Terug." });
+          },
+        },
+      });
+    },
+    [state]
+  );
+
+  const undelete = useCallback(
     (dedupeKey) => {
-      update((current) => setOverride(current, dedupeKey, { hidden: true }));
-      notify("ok", "Afspraak verborgen.");
+      update((current) => restoreAppointment(current, dedupeKey));
+      notify("ok", "Afspraak teruggezet.");
     },
     [update, notify]
   );
+
+  const undeleteAll = useCallback(() => {
+    update((current) => restoreAllDeleted(current));
+    notify("ok", "Alles teruggezet.");
+  }, [update, notify]);
+
+  const deleted = useMemo(() => (ready ? listDeleted(state) : []), [state, ready]);
 
   const loadDemo = useCallback(async () => {
     setBusy("Voorbeeld laden…");
@@ -455,7 +495,10 @@ export function useAfspraken({ initialTab = "binnenkort" } = {}) {
     removeSource: dropSource,
     addManual,
     editAppointment,
-    hideAppointment,
+    removeAppointment,
+    deleted,
+    undelete,
+    undeleteAll,
     loadDemo,
     download,
   };
