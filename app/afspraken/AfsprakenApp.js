@@ -354,6 +354,7 @@ export default function AfsprakenApp({ variant = "full", initialTab = "binnenkor
         onRemove={app.removeSource}
         onSettings={app.updateSettings}
         onReminders={app.enableReminders}
+        onTheme={app.setTheme}
         permission={app.permission}
         deleted={app.deleted}
         onUndelete={app.undelete}

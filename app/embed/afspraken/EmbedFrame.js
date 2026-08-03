@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import AfsprakenApp from "../../afspraken/AfsprakenApp";
+import { applyTheme, watchSystemTheme } from "../../../lib/afspraken/theme";
 
 /**
  * The widget as it runs inside someone else's page.
@@ -10,8 +11,16 @@ import AfsprakenApp from "../../afspraken/AfsprakenApp";
  * how tall it has become, so the iframe can grow and shrink with the list
  * instead of showing an inner scrollbar.
  */
-export default function EmbedFrame({ tab = "binnenkort", icsUrl = "" }) {
+export default function EmbedFrame({ tab = "binnenkort", icsUrl = "", theme = "" }) {
   const rootRef = useRef(null);
+
+  // A pinned appearance has to survive the app's own preference following the
+  // device, so re-apply it whenever the device flips.
+  useEffect(() => {
+    if (!theme) return undefined;
+    applyTheme(theme);
+    return watchSystemTheme(() => applyTheme(theme));
+  }, [theme]);
 
   useEffect(() => {
     document.documentElement.lang = "nl";

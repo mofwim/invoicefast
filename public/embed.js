@@ -12,6 +12,7 @@
  *
  * Attributes, all optional:
  *   data-tab     voorbij | binnenkort | later   (default: binnenkort)
+ *   data-theme   light | dark | auto            (default: follow the device)
  *   data-ics     a calendar link to preload
  *   data-height  starting height in pixels      (default: 540)
  *   data-target  CSS selector to render into instead of next to the script
@@ -51,6 +52,10 @@
   if (["voorbij", "binnenkort", "later"].indexOf(tab) === -1) tab = "binnenkort";
 
   var src = origin + "/embed/afspraken?tab=" + encodeURIComponent(tab);
+
+  var theme = attr("theme", "");
+  if (["light", "dark", "auto"].indexOf(theme) !== -1) src += "&theme=" + theme;
+
   var ics = attr("ics", "");
   if (ics) src += "&ics=" + encodeURIComponent(ics);
 
