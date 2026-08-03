@@ -103,6 +103,25 @@ const TOOLS = [
       await btn(page, /^(Samenvoegen|Merge)$/).click();
       await page.getByText(/7 pagina|7 pages/).waitFor({ timeout: 25000 });
       await keep(page, tool, locale, /Opslaan|Save/, "pdf");
+
+      // Now take only part of each file: pages 2 and 4 of the five-page
+      // report, and page 2 of the two-page annex. Three pages out of seven.
+      const ranges = page.locator(".tp-row-pages input");
+      await ranges.nth(0).fill("2,4");
+      await ranges.nth(1).fill("2");
+      await page.getByText(/3 pagina|3 pages/).first().waitFor({ timeout: 10000 });
+
+      // Clicking a page has to rewrite the field, the same way split does.
+      await page.getByRole("button", { name: /Pagina's tonen|Show the pages/ }).first().click();
+      await page.locator(".tp-row-tall .tp-grid-item").first().waitFor({ timeout: 25000 });
+      await page.locator(".tp-row-tall .tp-grid-item").nth(0).locator("button.tp-grid-sheet").click();
+      const after = await ranges.nth(0).inputValue();
+      if (after !== "1-2, 4") throw new Error(`clicking page 1 gave "${after}", expected "1-2, 4"`);
+
+      await ranges.nth(0).fill("2,4");
+      await btn(page, /^(Samenvoegen|Merge)$/).click();
+      await page.getByText(/3 pagina|3 pages/).last().waitFor({ timeout: 25000 });
+      await keep(page, "merge-pdf-part", locale, /Opslaan|Save/, "pdf");
     },
   },
   {
