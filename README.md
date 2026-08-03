@@ -2,13 +2,14 @@ A small market of tools that do their work in the browser. No account, no
 upload, no queue — the file stays on the reader's device, and each tool says so
 on its own page rather than as a slogan in a header.
 
-**The market lives at `/nl/tools` and `/en/tools`.** Twenty-eight tools.
+**The market lives at `/nl/tools`, `/en/tools` and `/ar/tools`.** Twenty-nine
+tools.
 
 | Category | Tools |
 | --- | --- |
 | Images | compress · convert (JPG/PNG/WebP) · resize for social media · favicon set · watermark |
 | PDF | [merge · split · organise · to images · to text · extract images · compress · properties · sign · images to PDF · watermark](#the-pdf-tools) |
-| Text and code | word count · JSON formatter · base64 · compare two texts · slug and URL encoder |
+| Text and code | word count · JSON formatter · base64 · compare two texts · slug and URL encoder · [fix Arabic text](#the-arabic-shaper) |
 | Generators | QR code · password · checksum (MD5/SHA) |
 | Files | open a `.eml` and pull out its attachments |
 | Calendar | ICS to CSV and back · [Mijn Afspraken](#mijn-afspraken--al-je-afspraken-op-één-plek) at `/afspraken` |
@@ -83,8 +84,8 @@ thing a preview must never be.
 ### Checking it
 
 ```bash
-npm test            # 229 unit tests: the parsers, the encoders, the model
-npm run verify      # all 28 tools driven in a browser, in both languages
+npm test            # 262 unit tests: the parsers, the encoders, the model
+npm run verify      # all 29 tools driven in a browser, in every language
 ```
 
 `npm run verify` is six passes in `tests/browser/`, and each looks for a
@@ -92,11 +93,11 @@ different kind of wrong:
 
 | Pass | What it would catch |
 | --- | --- |
-| `verify` | a tool that does not do its job — 58 runs across both languages |
+| `verify` | a tool that does not do its job — 60 runs across the languages |
 | `inspect` | **opens what came out**: page counts, rotations, written metadata, whether the text survived compression, the soundness of the zip, the exported JPEGs at 1240×1754 for 150 dpi on A4 |
 | `robust` | a wrong file: corrupt, empty, a photo renamed `.pdf`. A stack trace, a spinner that never stops, and saying nothing at all all count as failures |
 | `phone` | 390 px with touch: sideways scrolling, targets a thumb cannot hit, signing with a finger |
-| `phone` | for a screen reader: unnamed controls, the heading count, and the language a page claims to be in |
+| `phone` | for a screen reader: unnamed controls, the heading count, and the language and direction a page claims |
 | `loop` | a page that will not sit still when nobody is touching it |
 
 None of these is decoration. Between them they caught: a translator that
@@ -131,6 +132,36 @@ so nothing shifts, and they wait for an idle callback — which cannot run while
 a PDF is being compressed, so an advert can never take the thread from the job.
 None of this is asserted: `tests/browser/ads.mjs` watches the network and fails
 on any request to a known ad host before a choice was made.
+
+### The Arabic shaper
+
+CapCut, DaVinci Resolve, Blender and any Photoshop or After Effects without
+the Middle Eastern text engine draw Arabic backwards with every letter
+detached: they render each code point in its standalone shape, left to right,
+because they have no engine doing the joining and the reordering a cursive
+right-to-left script needs.
+
+`lib/tools/arabic.js` does that work ahead of time — each letter swapped for
+its correct contextual form from the Unicode Arabic Presentation Forms block,
+lam-alef fused into the single ligature it has to be, the visual order
+reversed, while Latin words, links and numbers keep running left to right and
+brackets are mirrored so they still point the right way. A renderer that knows
+nothing about Arabic then produces the right picture by accident.
+
+The engine arrived as a patch written against an older shape of this repo and
+is carried across unchanged, because its 33 tests are its specification and
+restyling working code is how correct code stops being correct. What did not
+come with it: a second ZIP writer (there is one already, checked against the
+system `unzip`), a table of social-media pixel dimensions asserted as fact for
+tools that do not exist here, and a parallel language system — this market
+already routes by locale with translated slugs and server-rendered prose,
+which is strictly better for being found than a switch in the corner.
+
+Arabic is a real locale rather than a toggle on one page: `/ar/tools`, its own
+slug, its own hreflang, `dir="rtl"` from the server, and its prose in the HTML
+a crawler reads. The stylesheet asks for inline-start rather than left, so the
+page mirrors; what must *not* mirror says so — a byte count, a pixel size or a
+checksum read backwards is simply wrong.
 
 ### Adding a language
 

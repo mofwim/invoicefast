@@ -29,6 +29,7 @@ const IMPLEMENTATIONS = {
   "unpack-email": dynamic(() => import("./unpack-email")),
   "convert-calendar": dynamic(() => import("./convert-calendar")),
   "word-count": dynamic(() => import("./word-count")),
+  "arabic-text": dynamic(() => import("./arabic-text")),
   "json-format": dynamic(() => import("./json-format")),
   base64: dynamic(() => import("./base64")),
   "text-diff": dynamic(() => import("./text-diff")),

@@ -349,6 +349,35 @@ const TOOLS = [
     },
   },
   {
+    id: "arabic-text",
+    slug: { nl: "arabische-tekst-repareren", en: "fix-arabic-text" },
+    async run(page, locale, tool) {
+      const input = page.locator("textarea").first();
+      await input.fill("اشترك في القناة");
+      await page.locator("textarea.ar-out").waitFor({ timeout: 10000 });
+
+      const fixed = await page.locator("textarea.ar-out").inputValue();
+      // The letters have to come back joined — presentation forms, not the
+      // isolated code points that were typed in.
+      if (!/[\uFE70-\uFEFF]/.test(fixed)) throw new Error(`nothing was shaped: ${fixed}`);
+      if (fixed === "اشترك في القناة") throw new Error("the text came back untouched");
+
+      // And the whole trip has to be reversible, or somebody's caption is lost.
+      const { restoreArabic } = await import("../../lib/tools/arabic.js");
+      if (restoreArabic(fixed) !== "اشترك في القناة") {
+        throw new Error(`the round trip lost something: ${restoreArabic(fixed)}`);
+      }
+
+      // Picking a game engine turns the flip off; that is the whole point of
+      // asking which app rather than asking which switches.
+      await page.getByRole("button", { name: "Unity / Godot" }).click();
+      await page.waitForTimeout(200);
+      const noFlip = await page.locator("textarea.ar-out").inputValue();
+      if (noFlip === fixed) throw new Error("choosing an engine changed nothing");
+      if (!/[\uFE70-\uFEFF]/.test(noFlip)) throw new Error("the engine preset stopped shaping too");
+    },
+  },
+  {
     id: "json-format",
     slug: { nl: "json-opmaken", en: "json-formatter" },
     async run(page, locale, tool) {

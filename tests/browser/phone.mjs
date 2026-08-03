@@ -152,12 +152,17 @@ const desk = await browser.newContext({ viewport: { width: 1280, height: 1400 } 
         nameless: [...new Set(nameless)],
         headings: document.querySelectorAll("h1").length,
         lang: document.documentElement.lang,
+        dir: document.documentElement.dir,
       };
     });
 
     check(named.nameless.length === 0, `${locale}/${slug}: unnamed controls — ${named.nameless.join(", ")}`);
     check(named.headings === 1, `${locale}/${slug}: ${named.headings} h1 elements, expected 1`);
     check(named.lang.startsWith(locale), `${locale}/${slug}: <html lang="${named.lang}">`);
+    check(
+      named.dir === (locale === "ar" ? "rtl" : "ltr"),
+      `${locale}/${slug}: dir="${named.dir}"`
+    );
 
     if (named.nameless.length || named.headings !== 1) {
       console.log(`FAIL  ${locale}/${slug} — ${named.nameless.join(", ") || `${named.headings} h1`}`);

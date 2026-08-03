@@ -49,6 +49,20 @@ export default function ToolShell({ tool, locale, children }) {
           minHeight={280}
         />
 
+        {/* A tool's longer prose, rendered here on the server. The tools
+            themselves load lazily and arrive after the crawler has read the
+            page, so anything meant to be found has to be above them. */}
+        {tool.notes?.length > 0 && (
+          <section className="tp-notes">
+            {tool.notes.map((note) => (
+              <div key={note.head}>
+                <h2>{note.head}</h2>
+                <p>{note.body}</p>
+              </div>
+            ))}
+          </section>
+        )}
+
         <p className="tp-privacy">
           <Icon name="check" size={15} strokeWidth={2.2} />
           <span>{t("privacy.tool")}</span>
