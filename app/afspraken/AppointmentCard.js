@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Icon from "./Icons";
 import {
   formatDuration,
@@ -107,10 +107,106 @@ function EditPanel({ appointment, onSave, onCancel }) {
   );
 }
 
+const SWIPE_WIDTH = 92;
+const SWIPE_TRIGGER = 46;
+const SWIPE_OPEN_EVENT = "ma:swipe-open";
+
+/**
+ * Swipe a row to the left to reveal Delete, the way a Mail or Reminders row
+ * behaves. It is an accelerator, never the only route: the expanded card keeps
+ * its own button for pointers, keyboards and screen readers.
+ */
+function useSwipeToDelete(rowId) {
+  const [offset, setOffset] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const gesture = useRef(null);
+
+  const close = useCallback(() => setOffset(0), []);
+
+  // Only one row may stand open at a time.
+  useEffect(() => {
+    const onOther = (event) => {
+      if (event.detail !== rowId) close();
+    };
+    document.addEventListener(SWIPE_OPEN_EVENT, onOther);
+    return () => document.removeEventListener(SWIPE_OPEN_EVENT, onOther);
+  }, [rowId, close]);
+
+  const onPointerDown = useCallback(
+    (event) => {
+      if (event.pointerType === "mouse") return; // dragging with a mouse is not a thing here
+      gesture.current = { x: event.clientX, y: event.clientY, base: offset, decided: false };
+    },
+    [offset]
+  );
+
+  const onPointerMove = useCallback((event) => {
+    const g = gesture.current;
+    if (!g) return;
+    const dx = event.clientX - g.x;
+    const dy = event.clientY - g.y;
+
+    if (!g.decided) {
+      // Let a vertical scroll win; only claim clearly horizontal movement.
+      if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) {
+        gesture.current = null;
+        return;
+      }
+      if (Math.abs(dx) < 10) return;
+      g.decided = true;
+      setDragging(true);
+    }
+
+    // Past the full width it gets progressively stiffer, as rubber banding does.
+    let next = g.base + dx;
+    if (next > 0) next = 0;
+    if (next < -SWIPE_WIDTH) next = -SWIPE_WIDTH - (SWIPE_WIDTH + next) * -0.3;
+    setOffset(Math.max(next, -SWIPE_WIDTH - 24));
+  }, []);
+
+  const onPointerUp = useCallback(() => {
+    const g = gesture.current;
+    gesture.current = null;
+    setDragging(false);
+    if (!g || !g.decided) return;
+
+    setOffset((current) => {
+      const open = current < -SWIPE_TRIGGER;
+      if (open) document.dispatchEvent(new CustomEvent(SWIPE_OPEN_EVENT, { detail: rowId }));
+      return open ? -SWIPE_WIDTH : 0;
+    });
+  }, [rowId]);
+
+  // A swipe that ended in a gesture must not also register as a tap.
+  const swallowClick = useCallback((event) => {
+    if (offset !== 0) {
+      event.preventDefault();
+      event.stopPropagation();
+      setOffset(0);
+      return true;
+    }
+    return false;
+  }, [offset]);
+
+  return {
+    offset,
+    dragging,
+    close,
+    swallowClick,
+    handlers: {
+      onPointerDown,
+      onPointerMove,
+      onPointerUp,
+      onPointerCancel: onPointerUp,
+    },
+  };
+}
+
 export default function AppointmentCard({ appointment, now, onEdit, onDelete }) {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const swipe = useSwipeToDelete(appointment.id);
 
   // Stepping away from the question is an answer: leave it armed and the next
   // stray tap deletes something.
@@ -145,13 +241,33 @@ export default function AppointmentCard({ appointment, now, onEdit, onDelete }) 
       data-tier={urgency.tier}
       data-open={open || undefined}
       data-cancelled={cancelled || undefined}
+      data-dragging={swipe.dragging || undefined}
       style={{ "--heat": urgency.heat, "--fade": urgency.fade }}
     >
+      <div className="ap-swipe" aria-hidden={swipe.offset === 0}>
+        <button
+          type="button"
+          tabIndex={swipe.offset === 0 ? -1 : 0}
+          onClick={() => {
+            swipe.close();
+            onDelete(appointment);
+          }}
+        >
+          <Icon name="trash" size={19} />
+          Verwijder
+        </button>
+      </div>
+
+      <div className="ap-slide" style={{ transform: `translateX(${swipe.offset}px)` }}>
       <button
         type="button"
         className="ap-head"
-        onClick={() => setOpen((value) => !value)}
+        onClick={(event) => {
+          if (swipe.swallowClick(event)) return;
+          setOpen((value) => !value);
+        }}
         aria-expanded={open}
+        {...swipe.handlers}
       >
         <span className="ap-rail" aria-hidden="true" />
 
@@ -216,9 +332,10 @@ export default function AppointmentCard({ appointment, now, onEdit, onDelete }) 
 
         <span className="ap-side">
           <span className="ap-rel">{formatRelative(appointment, now)}</span>
-          <span className="ap-chev"><Icon name="chevron" size={16} /></span>
+          <span className="ap-chev"><Icon name="chevron" size={15} strokeWidth={2.4} /></span>
         </span>
       </button>
+      </div>
 
       {open && (
         <div className="ap-detail">
