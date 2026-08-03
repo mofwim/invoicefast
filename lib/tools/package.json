@@ -1,0 +1,4 @@
+{
+  "//": "Marks this folder as ESM so the tool libraries can be unit-tested with `node --test` while Next.js bundles them normally.",
+  "type": "module"
+}

@@ -306,7 +306,7 @@ export default function AfsprakenApp({ variant = "full", initialTab = "binnenkor
             <span aria-hidden="true">·</span>
             <a href="/afspraken/insluiten">Op je eigen site</a>
             <span aria-hidden="true">·</span>
-            <a href="/">InvoiceFast</a>
+            <a href="/tools">Alle tools</a>
           </p>
         </footer>
       )}
