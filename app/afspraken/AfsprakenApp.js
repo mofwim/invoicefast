@@ -43,9 +43,18 @@ export default function AfsprakenApp({ variant = "full", initialTab = "binnenkor
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const [manualOpen, setManualOpen] = useState(false);
   const [dropping, setDropping] = useState(false);
+  const [condensed, setCondensed] = useState(false);
   const searchRef = useRef(null);
   const dragDepth = useRef(0);
   const seeded = useRef(false);
+
+  // Once the large title has scrolled away, the bar takes over its job.
+  useEffect(() => {
+    const onScroll = () => setCondensed(window.scrollY > 44);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const compact = variant === "embed";
   const hasSources = app.state.sources.length > 0;
@@ -142,43 +151,43 @@ export default function AfsprakenApp({ variant = "full", initialTab = "binnenkor
 
   return (
     <div className={`ma${compact ? " ma-compact" : ""}`}>
-      <header className="ma-top">
-        <div className="ma-brand">
-          <span className="ma-logo" aria-hidden="true">
-            <Icon name="clock" size={compact ? 17 : 19} strokeWidth={1.9} />
-          </span>
-          <span className="ma-brand-text">
-            <strong>Mijn Afspraken</strong>
-            {!compact && <span>alles wat je te wachten staat, op één plek</span>}
-          </span>
-        </div>
-
-        <div className="ma-tools">
-          <div className="ma-search">
-            <Icon name="search" size={15} />
-            <input
-              ref={searchRef}
-              type="search"
-              value={app.query}
-              onChange={(event) => app.setQuery(event.target.value)}
-              placeholder={compact ? "Zoeken" : "Zoek op naam, plaats of persoon"}
-              aria-label="Zoeken in afspraken"
-            />
-            {app.query && (
-              <button type="button" className="ma-icon-btn ma-search-clear" onClick={() => app.setQuery("")} aria-label="Zoekopdracht wissen">
-                <Icon name="close" size={14} />
-              </button>
-            )}
+      <header className="ma-navbar" data-condensed={condensed || undefined}>
+        <div className="ma-navbar-inner">
+          <span className="ma-navbar-title">Mijn Afspraken</span>
+          <div className="ma-navbar-actions">
+            <button type="button" className="ma-icon-btn" onClick={() => setManualOpen(true)} aria-label="Afspraak toevoegen" title="Afspraak toevoegen">
+              <Icon name="plus" size={22} strokeWidth={2} />
+            </button>
+            <button type="button" className="ma-icon-btn" onClick={() => setSourcesOpen(true)} aria-label="Afspraken ophalen" title="Afspraken ophalen">
+              <Icon name="inbox" size={21} />
+            </button>
           </div>
-
-          <button type="button" className="ma-icon-btn" onClick={() => setManualOpen(true)} aria-label="Afspraak toevoegen" title="Afspraak toevoegen">
-            <Icon name="plus" size={18} />
-          </button>
-          <button type="button" className="ma-icon-btn" onClick={() => setSourcesOpen(true)} aria-label="Afspraken ophalen" title="Afspraken ophalen">
-            <Icon name="inbox" size={18} />
-          </button>
         </div>
       </header>
+
+      {!compact && (
+        <h1 className="ma-largetitle">
+          Mijn Afspraken
+          <span>alles wat je te wachten staat, op één plek</span>
+        </h1>
+      )}
+
+      <div className="ma-search">
+        <Icon name="search" size={16} />
+        <input
+          ref={searchRef}
+          type="search"
+          value={app.query}
+          onChange={(event) => app.setQuery(event.target.value)}
+          placeholder="Zoeken"
+          aria-label="Zoeken in afspraken"
+        />
+        {app.query && (
+          <button type="button" className="ma-icon-btn ma-search-clear" onClick={() => app.setQuery("")} aria-label="Zoekopdracht wissen">
+            <Icon name="close" size={13} strokeWidth={2.4} />
+          </button>
+        )}
+      </div>
 
       {upNext && !app.query && (
         <button type="button" className={`ma-upnext${upNext.running ? " is-live" : ""}`} onClick={jumpToUpNext}>
@@ -191,7 +200,13 @@ export default function AfsprakenApp({ variant = "full", initialTab = "binnenkor
         </button>
       )}
 
-      <nav className="ma-tabs" role="tablist" aria-label="Periode">
+      <nav
+        className="ma-tabs"
+        role="tablist"
+        aria-label="Periode"
+        style={{ "--seg": BUCKETS.findIndex((b) => b.id === app.tab) }}
+      >
+        <span className="ma-seg-pill" aria-hidden="true" />
         {BUCKETS.map((bucket) => {
           const active = app.tab === bucket.id;
           const count = app.searchHits ? app.searchHits[bucket.id] : app.counts[bucket.id];
@@ -207,7 +222,6 @@ export default function AfsprakenApp({ variant = "full", initialTab = "binnenkor
             >
               <span className="ma-tab-label">{bucket.label}</span>
               <span className="ma-tab-count">{count}</span>
-              {!compact && <span className="ma-tab-hint">{bucket.hint}</span>}
             </button>
           );
         })}

@@ -77,6 +77,7 @@ export default function Modal({ open, onClose, title, subtitle, children, wide =
         ref={panelRef}
         tabIndex={-1}
       >
+        <span className="ma-grabber" aria-hidden="true" />
         <header className="ma-modal-head">
           <div>
             <h2>{title}</h2>

@@ -376,7 +376,7 @@ export function useAfspraken({ initialTab = "binnenkort" } = {}) {
       });
       dirty.current = true;
       setState(next);
-      notify("ok", "Voorbeeld geladen. Verwijder de bron als je klaar bent met kijken.");
+      notify("ok", "Voorbeeld geladen.");
     } finally {
       setBusy("");
     }
