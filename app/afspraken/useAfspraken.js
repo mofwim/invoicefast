@@ -33,9 +33,15 @@ import {
   splitIntoBuckets,
 } from "../../lib/afspraken/model";
 import { demoEvents } from "../../lib/afspraken/demo";
+import {
+  askPermission,
+  notificationPermission,
+  scheduleReminders,
+} from "../../lib/afspraken/reminders";
 
 const TICK_MS = 30000;
 const AUTO_SYNC_MS = 10 * 60000;
+const REPLAN_MS = 5 * 60000;
 
 export function useAfspraken({ initialTab = "binnenkort" } = {}) {
   const [state, setState] = useState(emptyState);
@@ -347,6 +353,54 @@ export function useAfspraken({ initialTab = "binnenkort" } = {}) {
     setTimeout(() => URL.revokeObjectURL(url), 2000);
   }, [timeline]);
 
+  // ---- reminders ---------------------------------------------------------
+  const [permission, setPermission] = useState("default");
+
+  useEffect(() => {
+    setPermission(notificationPermission());
+  }, []);
+
+  const enableReminders = useCallback(
+    async (minutes) => {
+      if (!minutes) {
+        updateSettings({ reminderMinutes: 0 });
+        return true;
+      }
+      const result = await askPermission();
+      setPermission(result);
+      if (result !== "granted") {
+        notify(
+          "error",
+          result === "denied"
+            ? "Meldingen staan uit in je browser. Zet ze aan bij de site-instellingen."
+            : "Meldingen zijn hier niet beschikbaar."
+        );
+        return false;
+      }
+      updateSettings({ reminderMinutes: minutes });
+      return true;
+    },
+    [updateSettings, notify]
+  );
+
+  // Re-plan every few minutes so appointments drifting into the horizon get a
+  // timer, and so a synced change is picked up without a reload.
+  useEffect(() => {
+    const minutes = state.settings?.reminderMinutes || 0;
+    if (!ready || !minutes || permission !== "granted") return undefined;
+
+    let cancel = scheduleReminders(timeline, minutes);
+    const timer = setInterval(() => {
+      cancel();
+      cancel = scheduleReminders(timeline, minutes);
+    }, REPLAN_MS);
+
+    return () => {
+      cancel();
+      clearInterval(timer);
+    };
+  }, [ready, timeline, state.settings?.reminderMinutes, permission]);
+
   // ---- background refresh ------------------------------------------------
   useEffect(() => {
     if (!ready || !state.settings?.autoSync) return undefined;
@@ -389,6 +443,8 @@ export function useAfspraken({ initialTab = "binnenkort" } = {}) {
     pending,
     settings: state.settings,
     updateSettings,
+    permission,
+    enableReminders,
     importFiles,
     importText,
     confirmImport,

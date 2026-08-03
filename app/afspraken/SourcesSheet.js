@@ -5,6 +5,7 @@ import Modal from "./Modal";
 import Icon from "./Icons";
 import { SOURCE_KINDS } from "../../lib/afspraken/store";
 import { formatRelative } from "../../lib/afspraken/model";
+import { REMINDER_CHOICES } from "../../lib/afspraken/reminders";
 
 const HELP = [
   {
@@ -44,6 +45,8 @@ export default function SourcesSheet({
   onSettings,
   onExport,
   onDemo,
+  onReminders,
+  permission,
 }) {
   const [url, setUrl] = useState("");
   const [paste, setPaste] = useState("");
@@ -249,6 +252,30 @@ export default function SourcesSheet({
             <option value={30}>over een maand</option>
           </select>
         </label>
+        <label className="ma-field">
+          <span><Icon name="bell" size={14} /> Herinnering</span>
+          <select
+            value={settings.reminderMinutes || 0}
+            onChange={(event) => onReminders(Number(event.target.value))}
+            disabled={permission === "unsupported"}
+          >
+            {REMINDER_CHOICES.map((choice) => (
+              <option key={choice.value} value={choice.value}>{choice.label}</option>
+            ))}
+          </select>
+        </label>
+        {Boolean(settings.reminderMinutes) && (
+          <p className="ma-fineprint ma-note-inline">
+            Je krijgt een melding zolang deze pagina of de app open staat — ook op de achtergrond.
+            Volledig gesloten kan je browser geen melding geven.
+          </p>
+        )}
+        {permission === "denied" && (
+          <p className="ma-fineprint ma-note-warn">
+            Meldingen zijn geblokkeerd voor deze site. Zet ze aan via het slotje in de adresbalk.
+          </p>
+        )}
+
         <label className="ma-check">
           <input
             type="checkbox"

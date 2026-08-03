@@ -334,6 +334,8 @@ export default function AfsprakenApp({ variant = "full", initialTab = "binnenkor
         onSyncOne={app.syncOne}
         onRemove={app.removeSource}
         onSettings={app.updateSettings}
+        onReminders={app.enableReminders}
+        permission={app.permission}
         onExport={app.download}
         onDemo={() => {
           app.loadDemo();

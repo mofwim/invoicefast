@@ -5,6 +5,7 @@ import {
   DAY,
   HOUR,
   MINUTE,
+  markConflicts,
   bucketOf,
   dedupeAppointments,
   formatDayHeading,
@@ -176,6 +177,37 @@ test("appointments at different times stay separate", () => {
   const a = normalizeAppointment({ title: "Overleg", start: NOW + HOUR, end: NOW + 2 * HOUR }, {});
   const b = normalizeAppointment({ title: "Overleg", start: NOW + 3 * HOUR, end: NOW + 4 * HOUR }, {});
   assert.equal(dedupeAppointments([a, b]).length, 2);
+});
+
+// -------------------------------------------------------------- conflicts
+
+test("flags appointments that overlap each other", () => {
+  const list = markConflicts([
+    { id: "a", dedupeKey: "a", title: "Tandarts", start: NOW + HOUR, end: NOW + 2 * HOUR, status: "CONFIRMED" },
+    { id: "b", dedupeKey: "b", title: "Overleg", start: NOW + 90 * MINUTE, end: NOW + 3 * HOUR, status: "CONFIRMED" },
+    { id: "c", dedupeKey: "c", title: "Fysio", start: NOW + 4 * HOUR, end: NOW + 5 * HOUR, status: "CONFIRMED" },
+  ]);
+  assert.deepEqual(list[0].conflictsWith, ["Overleg"]);
+  assert.deepEqual(list[1].conflictsWith, ["Tandarts"]);
+  assert.equal(list[2].conflictsWith, undefined, "een losse afspraak botst met niets");
+});
+
+test("appointments that merely touch do not clash", () => {
+  const list = markConflicts([
+    { id: "a", dedupeKey: "a", title: "Eerst", start: NOW, end: NOW + HOUR, status: "CONFIRMED" },
+    { id: "b", dedupeKey: "b", title: "Daarna", start: NOW + HOUR, end: NOW + 2 * HOUR, status: "CONFIRMED" },
+  ]);
+  assert.equal(list[0].conflictsWith, undefined);
+  assert.equal(list[1].conflictsWith, undefined);
+});
+
+test("all-day and cancelled entries are not clashes", () => {
+  const list = markConflicts([
+    { id: "a", dedupeKey: "a", title: "Verjaardag", start: NOW, end: NOW + DAY, allDay: true, status: "CONFIRMED" },
+    { id: "b", dedupeKey: "b", title: "Afgezegd", start: NOW + HOUR, end: NOW + 2 * HOUR, status: "CANCELLED" },
+    { id: "c", dedupeKey: "c", title: "Tandarts", start: NOW + HOUR, end: NOW + 2 * HOUR, status: "CONFIRMED" },
+  ]);
+  assert.ok(list.every((a) => a.conflictsWith === undefined));
 });
 
 // ---------------------------------------------------------- group & search

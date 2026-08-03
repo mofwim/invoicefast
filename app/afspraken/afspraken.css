@@ -484,11 +484,13 @@
 .ap-tag-off { background: hsl(0 0% 50% / 0.14); color: var(--ma-muted); }
 .ap-tag-soft { background: hsl(214 60% 55% / 0.15); color: hsl(214 55% 40%); }
 .ap-tag-warn { background: hsl(38 92% 50% / 0.18); color: hsl(28 78% 34%); }
+.ap-tag-clash { background: hsl(340 80% 55% / 0.15); color: hsl(340 65% 38%); }
 
 @media (prefers-color-scheme: dark) {
   .ap-tag { color: hsl(var(--h) calc(var(--s) * 0.8) 74%); }
   .ap-tag-soft { color: hsl(214 70% 74%); }
   .ap-tag-warn { color: hsl(38 88% 68%); }
+  .ap-tag-clash { color: hsl(340 80% 74%); }
 }
 
 .ap-meta {
@@ -595,6 +597,34 @@
 .ap-person-name { font-size: 13px; font-weight: 550; color: var(--ma-ink); }
 .ap-person-sub { font-size: 11.5px; color: var(--ma-muted); display: flex; gap: 7px; flex-wrap: wrap; }
 .ap-person-mail { color: var(--ma-muted); }
+
+/* What to bring — a list you can run your eye down on the way out the door. */
+.ap-bring { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.ap-bring li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 8px;
+  border: 1px solid hsl(var(--h) var(--s) 50% / 0.28);
+  border-radius: 999px;
+  background: hsl(var(--h) var(--s) 50% / 0.08);
+  font-size: 12.5px;
+  color: var(--ma-ink);
+}
+.ap-bring li::before {
+  content: "";
+  width: 11px; height: 11px;
+  border: 1.5px solid hsl(var(--h) calc(var(--s) * 0.8) 45%);
+  border-radius: 3px;
+  flex: none;
+}
+
+.ap-clash { color: hsl(340 62% 38%); }
+.ap-clash strong { font-weight: 600; }
+@media (prefers-color-scheme: dark) {
+  .ap-clash { color: hsl(340 78% 76%); }
+  .ap-bring li::before { border-color: hsl(var(--h) calc(var(--s) * 0.7) 68%); }
+}
 
 .ap-files { display: flex; flex-direction: column; gap: 5px; }
 .ap-file {
@@ -941,6 +971,11 @@
 .ma-check { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--ma-ink-soft); margin-bottom: 11px; cursor: pointer; }
 .ma-check input { width: 16px; height: 16px; accent-color: var(--ma-accent); cursor: pointer; }
 .ma-check-inline { margin: 0; font-size: 12.5px; }
+
+.ma-field > span { display: inline-flex; align-items: center; gap: 6px; }
+.ma-field > span .icon { color: var(--ma-accent); }
+.ma-note-inline { margin: -4px 0 12px; padding-left: 2px; }
+.ma-note-warn { color: #b42318 !important; }
 
 .ma-row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .ma-error { margin: 0; font-size: 13px; color: #b42318; font-weight: 520; }

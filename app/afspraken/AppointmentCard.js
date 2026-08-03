@@ -116,6 +116,8 @@ export default function AppointmentCard({ appointment, now, onEdit, onHide }) {
   const uncertain = appointment.confidence < 0.75;
   const people = appointment.people || [];
   const attachments = appointment.attachments || [];
+  const bring = appointment.bring || [];
+  const conflicts = appointment.conflictsWith || [];
 
   const addToCalendar = useCallback(() => {
     const text = buildIcs([appointment], { calendarName: appointment.title });
@@ -168,6 +170,11 @@ export default function AppointmentCard({ appointment, now, onEdit, onHide }) {
             {uncertain && (
               <span className="ap-tag ap-tag-warn" title="Automatisch uit tekst gelezen — controleer datum en tijd">
                 <Icon name="alert" size={12} /> Controleer
+              </span>
+            )}
+            {conflicts.length > 0 && !cancelled && (
+              <span className="ap-tag ap-tag-clash" title={`Overlapt met: ${conflicts.join(", ")}`}>
+                <Icon name="alert" size={12} /> Overlap
               </span>
             )}
           </span>
@@ -257,6 +264,29 @@ export default function AppointmentCard({ appointment, now, onEdit, onHide }) {
               </div>
             )}
 
+            {bring.length > 0 && (
+              <div>
+                <dt><Icon name="check" size={14} />Meenemen</dt>
+                <dd>
+                  <ul className="ap-bring">
+                    {bring.map((item, i) => (
+                      <li key={`${item}-${i}`}>{item}</li>
+                    ))}
+                  </ul>
+                </dd>
+              </div>
+            )}
+
+            {conflicts.length > 0 && !cancelled && (
+              <div>
+                <dt><Icon name="alert" size={14} />Let op</dt>
+                <dd className="ap-clash">
+                  Overlapt met {conflicts.length === 1 ? "" : `${conflicts.length} afspraken: `}
+                  <strong>{[...new Set(conflicts)].join(", ")}</strong>
+                </dd>
+              </div>
+            )}
+
             {attachments.length > 0 && (
               <div>
                 <dt><Icon name="clip" size={14} />Papieren</dt>
@@ -311,6 +341,11 @@ export default function AppointmentCard({ appointment, now, onEdit, onHide }) {
               {appointment.meetingUrl && (
                 <a className="btn btn-primary btn-sm" href={appointment.meetingUrl} target="_blank" rel="noopener noreferrer">
                   <Icon name="video" size={14} /> Deelnemen
+                </a>
+              )}
+              {appointment.phone && (
+                <a className="btn btn-quiet btn-sm" href={`tel:${appointment.phone.replace(/[^\d+]/g, "")}`}>
+                  <Icon name="phone" size={14} /> Bellen
                 </a>
               )}
               <button type="button" className="btn btn-quiet btn-sm" onClick={addToCalendar}>
