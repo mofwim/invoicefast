@@ -25,13 +25,6 @@ export function download(name, data, mime = "application/octet-stream") {
   setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
 
-/** Several downloads at once: browsers throttle them, so space them out. */
-export function downloadAll(files) {
-  files.forEach((file, i) =>
-    setTimeout(() => download(file.name, file.data, file.mime), i * 220)
-  );
-}
-
 export function safeFileName(value, fallback = "bestand") {
   const cleaned = String(value || "")
     .replace(/[^\p{L}\p{N}._ -]+/gu, "-")

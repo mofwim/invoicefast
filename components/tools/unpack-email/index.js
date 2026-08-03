@@ -57,7 +57,7 @@ export default function Unpacker({ locale = "nl" }) {
       setMail(null);
       setError(t("unreadable", { message: err.message }));
     }
-  }, []);
+  }, [t]);
 
   const html = mail?.html || "";
   const text = mail?.text || (html ? htmlToText(html) : "");

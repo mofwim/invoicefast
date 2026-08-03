@@ -4,6 +4,8 @@ import { useCallback, useState } from "react";
 import { Actions, FileDrop, Note, Panel, download, formatBytes, Icon } from "../ui";
 import { toolStrings } from "../../../lib/i18n/tools";
 import { describe, mergeFiles, save } from "../../../lib/tools/pdf";
+import { openDocument, pageThumbnail } from "../../../lib/tools/pdfjs";
+import { describeError } from "../../../lib/tools/errors";
 
 export default function MergePdf({ locale = "nl" }) {
   const t = toolStrings("merge-pdf", locale);
@@ -22,13 +24,28 @@ export default function MergePdf({ locale = "nl" }) {
       for (const file of files) {
         try {
           const info = await describe(file);
-          added.push({ file, ...info, key: `${file.name}-${file.size}-${added.length}` });
+          added.push({ file, ...info, key: `${file.name}-${file.size}-${Date.now()}-${added.length}` });
         } catch (err) {
-          setError(err.message);
+          setError(describeError(t, err));
         }
       }
       setItems((previous) => [...previous, ...added]);
       setBusy("");
+
+      // The cover of each file, fetched after the list is already on screen —
+      // seeing which document is which beats reading four similar filenames.
+      for (const item of added) {
+        try {
+          const reader = await openDocument(item.file);
+          const cover = await pageThumbnail(reader, 1, { maxSide: 120 });
+          await reader.destroy();
+          setItems((previous) =>
+            previous.map((entry) => (entry.key === item.key ? { ...entry, cover } : entry))
+          );
+        } catch {
+          // No cover is a missing picture, not a failure worth reporting.
+        }
+      }
     },
     [t]
   );
@@ -54,7 +71,7 @@ export default function MergePdf({ locale = "nl" }) {
       const saved = await save(doc, { name: "samengevoegd.pdf" });
       setResult({ ...saved, pages, files: items.length });
     } catch (err) {
-      setError(err.message);
+      setError(describeError(t, err));
     } finally {
       setBusy("");
     }
@@ -81,7 +98,11 @@ export default function MergePdf({ locale = "nl" }) {
           <ul className="tp-rows">
             {items.map((item, index) => (
               <li key={item.key}>
-                <Icon name="file" size={18} />
+                {item.cover ? (
+                  <img className="tp-cover" src={item.cover} alt="" />
+                ) : (
+                  <Icon name="file" size={18} />
+                )}
                 <span className="tp-row-text">
                   <strong>{item.file.name}</strong>
                   <span>

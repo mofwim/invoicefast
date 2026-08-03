@@ -2,15 +2,26 @@ A small market of tools that do their work in the browser. No account, no
 upload, no queue — the file stays on the reader's device, and each tool says so
 on its own page rather than as a slogan in a header.
 
-**The market lives at `/nl/tools` and `/en/tools`.**
+**The market lives at `/nl/tools` and `/en/tools`.** Twenty-seven tools.
 
 | Category | Tools |
 | --- | --- |
 | Images | compress · convert (JPG/PNG/WebP) · resize for social media · favicon set · watermark |
-| PDF | merge · split · rotate and delete pages · images to PDF · watermark and page numbers |
+| PDF | [merge · split · organise · to images · to text · compress · properties · sign · images to PDF · watermark](#the-pdf-tools) |
+| Text and code | word count · JSON formatter · base64 · compare two texts · slug and URL encoder |
+| Generators | QR code · password · checksum (MD5/SHA) |
 | Files | open a `.eml` and pull out its attachments |
 | Calendar | ICS to CSV and back · [Mijn Afspraken](#mijn-afspraken--al-je-afspraken-op-één-plek) at `/afspraken` |
-| Business | [InvoiceFast](#invoicefast--free-invoice-generator-web) at `/` |
+| Business | VAT calculator · IBAN validator · [InvoiceFast](#invoicefast--free-invoice-generator-web) at `/` |
+
+Three of the engines are written here rather than pulled in, and each is tested
+against something outside itself: the QR encoder is decoded by an independent
+reader, MD5 against the RFC vectors and against Node's own crypto at every
+padding boundary, and the ZIP writer is unpacked by the system's `unzip`.
+
+Errors carry a *code*, not a sentence (`lib/tools/errors.js`). The engines are
+language-agnostic and the market is not, so the page does the wording — a
+failure that read as Dutch on an English page would simply be a bug.
 
 ### Adding a tool
 
@@ -25,6 +36,33 @@ opened while the words around it still render on the server. The palette lives
 once in `app/ios-theme.css`; shared chrome strings in `lib/i18n/ui.js`, each
 tool's own strings in `lib/i18n/tools.js` with the languages side by side per
 key, so a missing translation is visible at a glance.
+
+### The PDF tools
+
+Two libraries, because the job has two halves.
+
+**pdf-lib** moves pages without ever looking inside them — merging, splitting,
+reordering, rotating, stamping and signing all copy the original content
+across untouched, so text stays text and a merged document is exactly as sharp
+as what went into it.
+
+**pdf.js** is the other half: it *draws*. Loaded only when a tool needs to see
+the document, it gives the page grid real thumbnails instead of numbered grey
+rectangles, exports pages as images at a chosen resolution, and pulls the text
+back out with the line breaks where they were. Its worker, character maps and
+standard fonts are copied to `public/pdfjs/` at build time
+(`scripts/copy-pdfjs.mjs`) rather than committed, so they cannot drift out of
+step with the installed version, and each is fetched only when a document
+actually asks for it.
+
+Where the two meet is **compress**, which offers both and says plainly what
+each costs: re-saving cleanly changes nothing about the pages; redrawing them
+as pictures makes a scan far smaller and stops the text being text. It is
+never done silently.
+
+Every page grid is the same component (`components/tools/PageGrid.js`).
+Reordering works by dragging and by two buttons, because drag-and-drop alone is
+unusable from a keyboard and awkward on a phone.
 
 ### Adding a language
 

@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Actions, Field, FileDrop, Note, Panel, Segmented, Slider, ResultFile, downloadAll, formatBytes, Icon } from "../ui";
+import { Actions, Field, FileDrop, Note, Panel, Segmented, Slider, ResultFile, download, formatBytes, Icon } from "../ui";
+import { makeZip, uniqueNames } from "../../../lib/tools/zip";
 import { EXTENSION, MIME, encode, loadImage, render, renameExtension, supportsType } from "../../../lib/tools/image";
 import { toolStrings } from "../../../lib/i18n/tools";
 
@@ -109,6 +110,7 @@ export default function Converter({ locale = "nl" }) {
                 blob={item.blob}
                 previewUrl={item.url}
                 meta={`${item.width}×${item.height} · ${formatBytes(item.was)} → ${formatBytes(item.blob.size)}`}
+                saveLabel={t("save")}
               />
             ))}
           </ul>
@@ -117,9 +119,13 @@ export default function Converter({ locale = "nl" }) {
               <button
                 type="button"
                 className="btn btn-primary"
-                onClick={() => downloadAll(items.map((item) => ({ name: item.name, data: item.blob })))}
+                onClick={async () => {
+                  const names = uniqueNames(items.map((item) => item.name));
+                  const zip = await makeZip(items.map((item, at) => ({ name: names[at], data: item.blob })));
+                  download("afbeeldingen.zip", zip);
+                }}
               >
-                <Icon name="download" size={16} /> {t("saveAll")}
+                <Icon name="download" size={16} /> {t("saveZip")}
               </button>
             </Actions>
           )}

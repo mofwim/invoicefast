@@ -53,7 +53,7 @@ export default function Converter({ locale = "nl" }) {
       return;
     }
     setResult({ kind: "ics", text: ics, count, errors, skipped, sourceName });
-  }, []);
+  }, [t]);
 
   const openFile = useCallback(
     async (file) => {

@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Actions, CopyButton, Field, FileDrop, Note, Panel, ResultFile, download, downloadAll, formatBytes, Icon } from "../ui";
+import { Actions, CopyButton, Field, FileDrop, Note, Panel, ResultFile, download, formatBytes, Icon } from "../ui";
+import { makeZip, uniqueNames } from "../../../lib/tools/zip";
 import { FAVICON_SIZES, MIME, buildIco, encode, loadImage, render } from "../../../lib/tools/image";
 import { toolStrings } from "../../../lib/i18n/tools";
 
@@ -120,6 +121,7 @@ export default function Favicons({ locale = "nl" }) {
                 name="favicon.ico"
                 blob={set.ico}
                 meta={`${t("icoMeta", { sizes: ICO_SIZES.join(", ") })} · ${formatBytes(set.ico.size)}`}
+                saveLabel={t("save")}
                 onDownload={() => download("favicon.ico", set.ico)}
               />
               {set.files.map((file) => (
@@ -129,6 +131,7 @@ export default function Favicons({ locale = "nl" }) {
                   blob={file.blob}
                   previewUrl={file.url}
                   meta={`${file.size}×${file.size} · ${formatBytes(file.blob.size)}`}
+                  saveLabel={t("save")}
                 />
               ))}
             </ul>
@@ -137,14 +140,15 @@ export default function Favicons({ locale = "nl" }) {
               <button
                 type="button"
                 className="btn btn-primary"
-                onClick={() =>
-                  downloadAll([
+                onClick={async () => {
+                  const zip = await makeZip([
                     { name: "favicon.ico", data: set.ico },
                     ...set.files.map((file) => ({ name: file.name, data: file.blob })),
-                  ])
-                }
+                  ]);
+                  download("favicons.zip", zip);
+                }}
               >
-                <Icon name="download" size={16} /> {t("saveAll")}
+                <Icon name="download" size={16} /> {t("saveZip")}
               </button>
             </Actions>
           </Panel>
