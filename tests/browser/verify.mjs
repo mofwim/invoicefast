@@ -491,6 +491,16 @@ const results = [];
 
 for (const locale of ["nl", "en"]) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 1600 } });
+  // Answer the advertising question the way a returning visitor already has,
+  // so these runs test the tools rather than the banner. The banner has a pass
+  // of its own in ads.mjs.
+  await context.addInitScript(() => {
+    try {
+      window.localStorage.setItem("tools_ads_consent", "refused");
+    } catch {
+      /* nothing */
+    }
+  });
   for (const tool of TOOLS) {
     if (ONLY && tool.id !== ONLY) continue;
     const page = await context.newPage();

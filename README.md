@@ -107,6 +107,31 @@ at nothing cancels the fallback that would have named them; and every Dutch
 page declaring itself `<html lang="en">`, which is why the site now has a root
 layout per language rather than one for all of them.
 
+### Advertising
+
+Off unless `NEXT_PUBLIC_ADS_CLIENT` is set — with it absent there is no banner,
+no slot and no request to anybody, which is also what makes a fork quiet by
+default rather than quietly earning for someone else. See `.env.example`.
+
+When it is on, the rule is mechanical rather than a matter of good intentions:
+**nothing from an ad network is loaded until somebody has chosen**, and the
+request is made by the slot that is about to fill rather than by the banner.
+Agreeing means "you may", not "do it now" — a visitor who agrees and then never
+scrolls to the foot of the page still costs nothing and is seen by nobody.
+
+Three answers, and refusing sits first and is the same size as agreeing. That
+is partly the law — the audience is Dutch, Belgian and German, and an ad cookie
+is never "strictly necessary", not even the non-personalised kind — and mostly
+the point: on a site whose entire pitch is that it takes nothing from you, a
+consent box that tricks people would be the loudest possible statement that the
+pitch is untrue. The choice can be changed at the foot of any page.
+
+Slots sit below the finished work, never inside it, with their space reserved
+so nothing shifts, and they wait for an idle callback — which cannot run while
+a PDF is being compressed, so an advert can never take the thread from the job.
+None of this is asserted: `tests/browser/ads.mjs` watches the network and fails
+on any request to a known ad host before a choice was made.
+
 ### Adding a language
 
 An entry in `LOCALES` (`lib/i18n/locales.js`), then an `i18n` key on each tool

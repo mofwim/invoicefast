@@ -31,6 +31,18 @@ export default function sitemap() {
     });
   }
 
+  for (const locale of LOCALES) {
+    entries.push({
+      url: absolute(`/${locale}/privacy`),
+      lastModified: now,
+      changeFrequency: "yearly",
+      priority: 0.3,
+      alternates: {
+        languages: Object.fromEntries(LOCALES.map((code) => [code, absolute(`/${code}/privacy`)])),
+      },
+    });
+  }
+
   for (const { locale, slug } of allToolRoutes()) {
     const tool = TOOLS.find((entry) => entry.i18n?.[locale]?.slug === slug);
     const languages = Object.fromEntries(

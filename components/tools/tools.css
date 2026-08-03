@@ -871,3 +871,113 @@
   .tp-seg button { min-height: 40px; padding-left: 18px; padding-right: 18px; flex: none; }
   .tp .btn-sm { min-height: 40px; padding: 10px 15px; }
 }
+
+/* ---------------------------------------------------------- advertising */
+
+/* The space is reserved before anything arrives. An advert that pushes the
+   page down as it loads moves the button somebody was about to press. */
+.ad-slot {
+  position: relative;
+  display: block;
+  width: 100%;
+  margin: 26px 0 6px;
+  padding-top: 16px;
+  border-top: 0.5px solid var(--ios-separator);
+  overflow: hidden;
+}
+.ad-slot .adsbygoogle { width: 100%; }
+/* Labelled, always. A reader is entitled to know which part of the page is
+   the site talking and which part is somebody paying to talk. */
+.ad-mark {
+  position: absolute;
+  top: 2px;
+  left: 0;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ios-label-2);
+  opacity: 0.65;
+}
+
+.ad-ask {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 60;
+  padding: 12px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  animation: ad-ask-in 0.32s var(--ios-ease);
+}
+@keyframes ad-ask-in {
+  from { transform: translateY(16px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+.ad-ask-inner {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 18px 20px 16px;
+  border-radius: 18px;
+  background: var(--ios-card);
+  box-shadow: 0 10px 40px rgb(0 0 0 / 0.22), 0 0 0 0.5px var(--ios-separator);
+}
+.ad-ask h2 { margin: 0 0 8px; font-size: 19px; font-weight: 600; letter-spacing: -0.02em; }
+.ad-ask p { margin: 0 0 12px; font-size: 14px; line-height: 1.5; color: var(--ios-label-2); }
+
+.ad-ask-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 34px;
+  margin-bottom: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ios-blue);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.ad-ask-more .icon { transition: transform 0.2s var(--ios-ease); }
+@media (pointer: coarse) {
+  .ad-ask-more { min-height: 44px; }
+}
+.ad-ask-open { transform: rotate(90deg); }
+.ad-ask-detail { font-size: 13px; }
+
+/* Refusing looks exactly like agreeing. That is the point. */
+.ad-ask-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.ad-ask-buttons .btn { flex: 1; min-width: 132px; font-size: 15px; }
+
+.ad-switch { margin: 10px 0 0; text-align: center; font-size: 13px; }
+.ad-switch > button {
+  min-height: 40px;
+  padding: 0 10px;
+  border: 0;
+  background: none;
+  color: var(--ios-label-2);
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.ad-switch-options { display: inline-flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-left: 6px; }
+.ad-switch-options button {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--ios-fill);
+  color: var(--ios-label);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.ad-switch-options button[aria-pressed="true"] { background: var(--ios-blue); color: #fff; }
+
+.tp-prose { margin: 0 0 12px; font-size: 15px; line-height: 1.6; color: var(--ios-label); }
+.tp-prose:last-child { margin-bottom: 0; }
+.tp-foot a + a { margin-left: 4px; }
+
+@media (max-width: 600px) {
+  .ad-ask-buttons .btn { flex: 1 1 100%; }
+}

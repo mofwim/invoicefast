@@ -4,6 +4,9 @@ import { themeBootScript } from "../../lib/afspraken/theme";
 import { LOCALES, LOCALE_META } from "../../lib/i18n/locales";
 import { translator } from "../../lib/i18n/ui";
 import { alternatesFor, relatedTools } from "../../lib/tools/registry";
+import AdSlot from "../ads/AdSlot";
+import ConsentGate from "../ads/Consent";
+import { adWords } from "../../lib/ads/words";
 import "./tools.css";
 
 /**
@@ -37,6 +40,15 @@ export default function ToolShell({ tool, locale, children }) {
 
         {children}
 
+        {/* Below the work, never inside it: by the time this is on screen the
+            reader is finished, and a slot they never scroll to costs them
+            nothing at all. */}
+        <AdSlot
+          slot={process.env.NEXT_PUBLIC_ADS_SLOT_TOOL}
+          label={adWords(locale).ad}
+          minHeight={280}
+        />
+
         <p className="tp-privacy">
           <Icon name="check" size={15} strokeWidth={2.2} />
           <span>{t("privacy.tool")}</span>
@@ -65,7 +77,9 @@ export default function ToolShell({ tool, locale, children }) {
 
         <p className="tp-foot">
           <a href={`/${locale}/tools`}>{t("market.all")}</a>
+          <a href={`/${locale}/privacy`}>{t("privacy.link")}</a>
         </p>
+        <ConsentGate locale={locale} />
       </div>
     </div>
   );

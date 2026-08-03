@@ -6,6 +6,9 @@ import { LOCALES, LOCALE_META } from "../../lib/i18n/locales";
 import { translator } from "../../lib/i18n/ui";
 import { categoriesForLocale, toolsForLocale } from "../../lib/tools/registry";
 import { LanguageSwitch } from "./ToolShell";
+import AdSlot from "../ads/AdSlot";
+import ConsentGate from "../ads/Consent";
+import { adWords } from "../../lib/ads/words";
 import "./tools.css";
 
 /**
@@ -89,10 +92,19 @@ export default function Market({ locale }) {
         ))
       )}
 
+      {/* After every category, so it never sits between somebody and the tool
+          they were reading about. */}
+      <AdSlot slot={process.env.NEXT_PUBLIC_ADS_SLOT_MARKET} label={adWords(locale).ad} minHeight={280} />
+
       <p className="tp-privacy">
         <Icon name="check" size={15} strokeWidth={2.2} />
         <span>{t("privacy.market")}</span>
       </p>
+
+      <p className="tp-foot">
+        <a href={`/${locale}/privacy`}>{t("privacy.link")}</a>
+      </p>
+      <ConsentGate locale={locale} />
     </div>
   );
 }
