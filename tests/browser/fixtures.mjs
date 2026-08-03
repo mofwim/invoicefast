@@ -89,6 +89,65 @@ for (let i = 1; i <= 2; i++) {
 }
 await writeFile("fx/met-fotos.pdf", await withImages.save());
 
+// Something that behaves like a scan: two pages that are each one big
+// photograph. This is the shape the image compressor exists for, and the only
+// honest way to make a real JPEG here is to let a browser encode one.
+const { chromium } = await import("playwright");
+const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
+const shot = await browser.newPage();
+const jpegBase64 = await shot.evaluate(async () => {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1700;
+  canvas.height = 2200;
+  const ctx = canvas.getContext("2d");
+  // Noise and gradients, so the JPEG cannot be trivially small.
+  const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+  gradient.addColorStop(0, "#eef2ff");
+  gradient.addColorStop(1, "#fde7d2");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  for (let i = 0; i < 24000; i++) {
+    ctx.fillStyle = `rgba(${(i * 7) % 255},${(i * 13) % 255},${(i * 29) % 255},0.5)`;
+    ctx.fillRect((i * 37) % canvas.width, (i * 53) % canvas.height, 5, 5);
+  }
+  ctx.fillStyle = "#111";
+  ctx.font = "72px sans-serif";
+  ctx.fillText("Gescand document", 120, 200);
+  const blob = await new Promise((r) => canvas.toBlob(r, "image/jpeg", 0.95));
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
+});
+await browser.close();
+
+const scanJpeg = Buffer.from(jpegBase64, "base64");
+await writeFile("fx/scan.jpg", scanJpeg);
+
+const scan = await PDFDocument.create();
+const sheet = await scan.embedJpg(scanJpeg);
+for (let i = 0; i < 2; i++) {
+  const page = scan.addPage([595.28, 841.89]);
+  page.drawImage(sheet, { x: 0, y: 0, width: 595.28, height: 841.89 });
+}
+await writeFile("fx/scan.pdf", await scan.save());
+
+// The case that decides whether the compressor is any good: a document with
+// real text *and* a heavy photograph. Afterwards the file has to be much
+// smaller and the text has to still be text.
+const mixed = await PDFDocument.create();
+const f4 = await mixed.embedFont(StandardFonts.Helvetica);
+const heavy = await mixed.embedJpg(scanJpeg);
+for (let i = 1; i <= 3; i++) {
+  const page = mixed.addPage([595.28, 841.89]);
+  page.drawImage(heavy, { x: 40, y: 300, width: 515, height: 400 });
+  page.drawText(`Jaarverslag pagina ${i}`, { x: 40, y: 780, size: 22, font: f4 });
+  page.drawText("Deze zin hoort na het verkleinen nog steeds tekst te zijn.", {
+    x: 40, y: 200, size: 12, font: f4,
+  });
+}
+await writeFile("fx/gemengd.pdf", await mixed.save());
+
 // A calendar file and a saved e-mail.
 await writeFile(
   "fx/agenda.ics",

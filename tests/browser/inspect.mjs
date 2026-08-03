@@ -6,10 +6,47 @@ import { PDFDocument } from "pdf-lib";
 import { readFile } from "node:fs/promises";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import zlib from "node:zlib";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 const run = promisify(execFile);
 process.chdir(dirname(fileURLToPath(import.meta.url)));
+
+/**
+ * The words in a PDF, read straight out of the file.
+ *
+ * Not a renderer — just the text-showing operators inside the content
+ * streams. Enough to answer the only question being asked here: are the words
+ * still words, or did they become pixels?
+ */
+async function textOf(bytes) {
+  const doc = await PDFDocument.load(bytes);
+  const out = [];
+  for (const [, object] of doc.context.enumerateIndirectObjects()) {
+    let raw;
+    try {
+      raw = object?.getContents?.();
+    } catch {
+      continue;
+    }
+    if (!raw) continue;
+    let text = Buffer.from(raw).toString("latin1");
+    if (!/\bTj\b|\bTJ\b/.test(text)) {
+      try {
+        text = zlib.inflateSync(Buffer.from(raw)).toString("latin1");
+      } catch {
+        continue;
+      }
+    }
+    // Two shapes of string operand: the literal form, and the hex form that
+    // pdf-lib actually writes.
+    for (const match of text.matchAll(/\(((?:[^()\\]|\\.)*)\)\s*Tj/g)) out.push(match[1]);
+    for (const match of text.matchAll(/<([0-9A-Fa-f\s]+)>\s*Tj/g)) {
+      out.push(Buffer.from(match[1].replace(/\s+/g, ""), "hex").toString("latin1"));
+    }
+  }
+  return out.join(" ");
+}
 
 const problems = [];
 const check = (ok, what) => { console.log(`${ok ? "  ok" : "FAIL"}  ${what}`); if (!ok) problems.push(what); };
@@ -38,12 +75,32 @@ for (const locale of ["nl", "en"]) {
   const stamped = await PDFDocument.load(await readFile(`out/stamp-pdf-${locale}.pdf`));
   check(stamped.getPageCount() === 5, `${locale} stamp → 5 pages (got ${stamped.getPageCount()})`);
 
-  // compress, the heavy path: same page count, same paper size
-  const smaller = await PDFDocument.load(await readFile(`out/compress-pdf-${locale}.pdf`));
+  // compress at the image level: the scan shrinks, keeps its pages and paper,
+  // and — the whole point — its text objects are still text.
+  const scanIn = (await readFile("fx/scan.pdf")).length;
+  const scanOut = await readFile(`out/compress-pdf-${locale}.pdf`);
+  const smaller = await PDFDocument.load(scanOut);
   const size = smaller.getPage(0).getSize();
-  check(smaller.getPageCount() === 5, `${locale} compress → 5 pages (got ${smaller.getPageCount()})`);
+  check(smaller.getPageCount() === 2, `${locale} compress → 2 pages (got ${smaller.getPageCount()})`);
   check(Math.round(size.width) === 595 && Math.round(size.height) === 842,
     `${locale} compress → still A4 (got ${Math.round(size.width)}×${Math.round(size.height)})`);
+  check(scanOut.length < scanIn * 0.4,
+    `${locale} compress → the scan came down hard (${Math.round(scanIn / 1024)} kB → ${Math.round(scanOut.length / 1024)} kB)`);
+
+  // text and picture together: much smaller, and every word still a word
+  const mixedIn = (await readFile("fx/gemengd.pdf")).length;
+  const mixedOut = await readFile(`out/compress-pdf-mixed-${locale}.pdf`);
+  check(mixedOut.length < mixedIn * 0.5,
+    `${locale} compress → mixed document halved (${Math.round(mixedIn / 1024)} kB → ${Math.round(mixedOut.length / 1024)} kB)`);
+  const words = await textOf(mixedOut);
+  check(/nog steeds tekst/.test(words),
+    `${locale} compress → the text is still text afterwards`);
+  check((words.match(/Jaarverslag pagina/g) || []).length === 3,
+    `${locale} compress → all three pages kept their words`);
+
+  // the heavy path, on the text document
+  const raster = await PDFDocument.load(await readFile(`out/compress-pdf-raster-${locale}.pdf`));
+  check(raster.getPageCount() === 5, `${locale} compress (heavy) → 5 pages (got ${raster.getPageCount()})`);
 
   // metadata: the new title is really in the file
   const titled = await PDFDocument.load(await readFile(`out/pdf-metadata-${locale}.pdf`));

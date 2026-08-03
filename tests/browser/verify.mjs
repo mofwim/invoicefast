@@ -204,15 +204,52 @@ const TOOLS = [
     id: "compress-pdf",
     slug: { nl: "pdf-verkleinen", en: "compress-pdf" },
     async run(page, locale, tool) {
-      await page.setInputFiles('input[type="file"]', file("rapport.pdf"));
-      await btn(page, /^(Verkleinen|Compress)$/).click();
-      await page.locator("dl.tp-stat").waitFor({ timeout: 30000 });
-
-      // And the heavy path, which is the one that uses the renderer.
-      await btn(page, /^(Zwaar|Heavy)$/).click();
+      // The scan is the case this tool exists for: two pages that are each one
+      // big photograph.
+      await page.setInputFiles('input[type="file"]', file("scan.pdf"));
       await btn(page, /^(Verkleinen|Compress)$/).click();
       await page.locator("dl.tp-stat").waitFor({ timeout: 60000 });
-      const pages = await page.locator("dl.tp-stat div").last().locator("dd").textContent();
+
+      const cells = await page.locator("dl.tp-stat dd").allTextContents();
+      const bytes = (label) => {
+        const match = label.match(/([\d.,]+)\s*(B|kB|MB)/);
+        if (!match) return NaN;
+        const value = Number(match[1].replace(",", "."));
+        return value * { B: 1, kB: 1024, MB: 1024 * 1024 }[match[2]];
+      };
+      const was = bytes(cells[0]);
+      const now = bytes(cells[1]);
+      if (!(now < was * 0.5)) {
+        throw new Error(`a 1.8 MB scan should more than halve; got ${cells[0]} → ${cells[1]}`);
+      }
+      if (cells[3] !== "1 / 1") throw new Error(`expected the one picture rewritten, got ${cells[3]}`);
+      await keep(page, tool, locale, /Opslaan|Save/, "pdf");
+
+      // The decisive one: text and a heavy picture together. It has to shrink
+      // hard *and* leave the words alone — that is the entire argument for
+      // doing it this way instead of redrawing the pages.
+      await page.setInputFiles('input[type="file"]', file("gemengd.pdf"));
+      await btn(page, /^(Verkleinen|Compress)$/).click();
+      await page.locator(".tp-note-ok").waitFor({ timeout: 60000 });
+      await keep(page, "compress-pdf-mixed", locale, /Opslaan|Save/, "pdf");
+
+      // And on a document that is only text, it has to say there is nothing to
+      // win rather than inventing a saving.
+      await page.setInputFiles('input[type="file"]', file("rapport.pdf"));
+      await btn(page, /^(Verkleinen|Compress)$/).click();
+      await page.locator(".tp-note-warn").waitFor({ timeout: 40000 });
+      await page.getByText(/geen afbeeldingen|no pictures/i).waitFor({ timeout: 10000 });
+    },
+  },
+  {
+    id: "compress-pdf-raster",
+    slug: { nl: "pdf-verkleinen", en: "compress-pdf" },
+    async run(page, locale, tool) {
+      await page.setInputFiles('input[type="file"]', file("rapport.pdf"));
+      await btn(page, /^(Alles|Everything)$/).click();
+      await btn(page, /^(Verkleinen|Compress)$/).click();
+      await page.locator("dl.tp-stat").waitFor({ timeout: 60000 });
+      const pages = await page.locator("dl.tp-stat div").nth(2).locator("dd").textContent();
       if (pages.trim() !== "5") throw new Error(`rasterised document has ${pages} pages`);
       await keep(page, tool, locale, /Opslaan|Save/, "pdf");
     },
