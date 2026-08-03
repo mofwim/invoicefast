@@ -39,6 +39,9 @@ const nextConfig = {
     return [
       { source: "/mijn-afspraken", destination: "/afspraken", permanent: true },
       { source: "/afspraken/embed", destination: "/afspraken/insluiten", permanent: true },
+      // The market gained languages; the unprefixed paths now point at Dutch.
+      { source: "/tools", destination: "/nl/tools", permanent: true },
+      { source: "/tools/:slug", destination: "/nl/tools/:slug", permanent: true },
     ];
   },
 };

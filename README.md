@@ -2,29 +2,178 @@ A small market of tools that do their work in the browser. No account, no
 upload, no queue — the file stays on the reader's device, and each tool says so
 on its own page rather than as a slogan in a header.
 
-**The market lives at `/tools`.**
+**The market lives at `/nl/tools`, `/en/tools` and `/ar/tools`.** Twenty-nine
+tools.
 
-| Tool | What it does |
+| Category | Tools |
 | --- | --- |
-| [Mijn Afspraken](#mijn-afspraken--al-je-afspraken-op-één-plek) (`/afspraken`) | Appointments out of a calendar *and* out of e-mail, in three tabs |
-| E-mail uitpakken (`/tools/email-uitpakken`) | Open a `.eml` and save its attachments |
-| Agenda omzetten (`/tools/agenda-omzetten`) | ICS → CSV for a spreadsheet, and back again |
-| InvoiceFast (`/`) | A free invoice generator |
+| Images | compress · convert (JPG/PNG/WebP) · resize for social media · favicon set · watermark |
+| PDF | [merge · split · organise · to images · to text · extract images · compress · properties · sign · images to PDF · watermark](#the-pdf-tools) |
+| Text and code | word count · JSON formatter · base64 · compare two texts · slug and URL encoder · [fix Arabic text](#the-arabic-shaper) |
+| Generators | QR code · password · checksum (MD5/SHA) |
+| Files | open a `.eml` and pull out its attachments |
+| Calendar | ICS to CSV and back · [Mijn Afspraken](#mijn-afspraken--al-je-afspraken-op-één-plek) at `/afspraken` |
+| Business | VAT calculator · IBAN validator · [InvoiceFast](#invoicefast--free-invoice-generator-web) at `/` |
+
+Three of the engines are written here rather than pulled in, and each is tested
+against something outside itself: the QR encoder is decoded by an independent
+reader, MD5 against the RFC vectors and against Node's own crypto at every
+padding boundary, and the ZIP writer is unpacked by the system's `unzip`.
+
+Errors carry a *code*, not a sentence (`lib/tools/errors.js`). The engines are
+language-agnostic and the market is not, so the page does the wording — a
+failure that read as Dutch on an English page would simply be a bug.
 
 ### Adding a tool
 
-Two steps, on purpose:
+Two steps, in any language:
 
-1. An entry in `lib/tools/registry.js` — name, tagline, category, icon, tint.
-   The hub renders straight from that list.
-2. A page under `app/tools/<slug>/` wrapped in `ToolShell`, which supplies the
-   back link, the title, the shared surface and the privacy note.
+1. An entry in `lib/tools/registry.js` — its words and its slug, per language.
+2. A component in `components/tools/<id>/`, listed in `implementations.js`.
 
-The palette lives once in `app/ios-theme.css`, so a new tool inherits the look
-instead of re-inventing it, and follows the same light/dark preference.
+No page file and no routing change: one dynamic route serves the whole market,
+and implementations load lazily so a visitor downloads only the tool they
+opened while the words around it still render on the server. The palette lives
+once in `styles/ios-theme.css`; shared chrome strings in `lib/i18n/ui.js`, each
+tool's own strings in `lib/i18n/tools.js` with the languages side by side per
+key, so a missing translation is visible at a glance.
 
-The engines are shared too: `E-mail uitpakken` is the MIME reader written for
-Mijn Afspraken, and `Agenda omzetten` is its iCalendar reader plus the lenient
+### The PDF tools
+
+Two libraries, because the job has two halves.
+
+**pdf-lib** moves pages without ever looking inside them — merging, splitting,
+reordering, rotating, stamping and signing all copy the original content
+across untouched, so text stays text and a merged document is exactly as sharp
+as what went into it.
+
+**pdf.js** is the other half: it *draws*. Loaded only when a tool needs to see
+the document, it gives the page grid real thumbnails instead of numbered grey
+rectangles, exports pages as images at a chosen resolution, pulls the text back
+out with the line breaks where they were, and lifts the embedded photographs
+out at their own resolution — which is a different thing from a page that
+happens to look like one. Its worker, character maps and
+standard fonts are copied to `public/pdfjs/` at build time
+(`scripts/copy-pdfjs.mjs`) rather than committed, so they cannot drift out of
+step with the installed version, and each is fetched only when a document
+actually asks for it.
+
+**Compressing** is where the two meet, and it is done at the level of the
+images rather than the page. The naive way — redraw every page as a picture —
+makes a text document *bigger*, because a page of type compresses far worse as
+pixels than as glyphs, and where it does win it wins by destroying what people
+came for. So the compressor walks the object graph, rewrites only the embedded
+image streams, and carries every text and vector object across untouched: a
+1.8 MB scan comes down to 470 kB, and a document with text and photographs
+together halves while every word stays a word. Anything it cannot decode
+safely — a transparent image, a CMYK JPEG, a stencil mask — is left exactly as
+it was, and the page says how many and why. Three rungs are offered in order of
+what they cost, and the old page-rasteriser is kept as the last one for the
+file that defeats the other two.
+
+Every page grid is the same component (`components/tools/PageGrid.js`).
+Reordering works by dragging and by two buttons, because drag-and-drop alone is
+unusable from a keyboard and awkward on a phone.
+
+The watermark preview is produced by the same call that produces the result —
+one page put through the real operation and then rendered
+(`samplePage` + `usePreview`). Drawing an approximation on top of a picture
+would be faster and would eventually be wrong about something, which is the one
+thing a preview must never be.
+
+### Checking it
+
+```bash
+npm test            # 262 unit tests: the parsers, the encoders, the model
+npm run verify      # all 29 tools driven in a browser, in every language
+```
+
+`npm run verify` is six passes in `tests/browser/`, and each looks for a
+different kind of wrong:
+
+| Pass | What it would catch |
+| --- | --- |
+| `verify` | a tool that does not do its job — 60 runs across the languages |
+| `inspect` | **opens what came out**: page counts, rotations, written metadata, whether the text survived compression, the soundness of the zip, the exported JPEGs at 1240×1754 for 150 dpi on A4 |
+| `robust` | a wrong file: corrupt, empty, a photo renamed `.pdf`. A stack trace, a spinner that never stops, and saying nothing at all all count as failures |
+| `phone` | 390 px with touch: sideways scrolling, targets a thumb cannot hit, signing with a finger |
+| `phone` | for a screen reader: unnamed controls, the heading count, and the language and direction a page claims |
+| `loop` | a page that will not sit still when nobody is touching it |
+
+None of these is decoration. Between them they caught: a translator that
+returned a fresh closure on every call, which made an effect re-run on every
+render and the password generator rewrite itself 91,000 times a second; sliders
+and switches with no name for a screen reader to say, because a `for` pointing
+at nothing cancels the fallback that would have named them; and every Dutch
+page declaring itself `<html lang="en">`, which is why the site now has a root
+layout per language rather than one for all of them.
+
+### Advertising
+
+Off unless `NEXT_PUBLIC_ADS_CLIENT` is set — with it absent there is no banner,
+no slot and no request to anybody, which is also what makes a fork quiet by
+default rather than quietly earning for someone else. See `.env.example`.
+
+When it is on, the rule is mechanical rather than a matter of good intentions:
+**nothing from an ad network is loaded until somebody has chosen**, and the
+request is made by the slot that is about to fill rather than by the banner.
+Agreeing means "you may", not "do it now" — a visitor who agrees and then never
+scrolls to the foot of the page still costs nothing and is seen by nobody.
+
+Three answers, and refusing sits first and is the same size as agreeing. That
+is partly the law — the audience is Dutch, Belgian and German, and an ad cookie
+is never "strictly necessary", not even the non-personalised kind — and mostly
+the point: on a site whose entire pitch is that it takes nothing from you, a
+consent box that tricks people would be the loudest possible statement that the
+pitch is untrue. The choice can be changed at the foot of any page.
+
+Slots sit below the finished work, never inside it, with their space reserved
+so nothing shifts, and they wait for an idle callback — which cannot run while
+a PDF is being compressed, so an advert can never take the thread from the job.
+None of this is asserted: `tests/browser/ads.mjs` watches the network and fails
+on any request to a known ad host before a choice was made.
+
+### The Arabic shaper
+
+CapCut, DaVinci Resolve, Blender and any Photoshop or After Effects without
+the Middle Eastern text engine draw Arabic backwards with every letter
+detached: they render each code point in its standalone shape, left to right,
+because they have no engine doing the joining and the reordering a cursive
+right-to-left script needs.
+
+`lib/tools/arabic.js` does that work ahead of time — each letter swapped for
+its correct contextual form from the Unicode Arabic Presentation Forms block,
+lam-alef fused into the single ligature it has to be, the visual order
+reversed, while Latin words, links and numbers keep running left to right and
+brackets are mirrored so they still point the right way. A renderer that knows
+nothing about Arabic then produces the right picture by accident.
+
+The engine arrived as a patch written against an older shape of this repo and
+is carried across unchanged, because its 33 tests are its specification and
+restyling working code is how correct code stops being correct. What did not
+come with it: a second ZIP writer (there is one already, checked against the
+system `unzip`), a table of social-media pixel dimensions asserted as fact for
+tools that do not exist here, and a parallel language system — this market
+already routes by locale with translated slugs and server-rendered prose,
+which is strictly better for being found than a switch in the corner.
+
+Arabic is a real locale rather than a toggle on one page: `/ar/tools`, its own
+slug, its own hreflang, `dir="rtl"` from the server, and its prose in the HTML
+a crawler reads. The stylesheet asks for inline-start rather than left, so the
+page mirrors; what must *not* mirror says so — a byte count, a pixel size or a
+checksum read backwards is simply wrong.
+
+### Adding a language
+
+An entry in `LOCALES` (`lib/i18n/locales.js`), then an `i18n` key on each tool
+and a dictionary block. German is already listed as planned.
+
+Slugs are translated too — `/nl/tools/pdf-samenvoegen` against
+`/en/tools/merge-pdf` — because that is most of what a search engine reads, and
+every page declares its alternates so the two versions do not compete.
+
+The engines are shared: the e-mail tool is the MIME reader written for Mijn
+Afspraken, and the calendar converter is its iCalendar reader plus the lenient
 date reader that copes with `half elf` in a spreadsheet cell.
 
 ---
@@ -261,7 +410,7 @@ lib/afspraken/
 ├── idb.js         attachment bytes
 └── demo.js        the worked example
 
-tests/            151 tests; import.test.mjs is the corpus of real mail shapes
+tests/            161 tests; import.test.mjs is the corpus of real mail shapes
 ```
 
 ### Running it

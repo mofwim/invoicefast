@@ -2,3 +2,9 @@ node_modules
 .next
 .env*.local
 .DS_Store
+public/pdfjs/
+
+# Made by the browser checks, not kept
+tests/browser/fx/
+tests/browser/out/
+tests/browser/*.log
