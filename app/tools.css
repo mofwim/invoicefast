@@ -467,3 +467,52 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---------------------------------------------------------- page tiles */
+
+.tp-row-actions { display: flex; gap: 4px; flex: none; align-items: center; }
+.tp-row-actions .btn { min-width: 34px; padding: 8px 9px; }
+
+/* A page stands in for itself — a number and an orientation is all that has
+   to be right, and drawing the real thing would mean shipping a renderer. */
+.tp-pages {
+  list-style: none;
+  margin: 0 0 4px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 12px;
+}
+.tp-pages li { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.tp-pages li[data-dropped] { opacity: 0.4; }
+
+.tp-page-tile {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1 / 1.414;
+  border: 1px solid var(--ios-separator);
+  border-radius: 8px;
+  background: var(--ios-fill-2);
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ios-label-2);
+  transition: transform 0.25s var(--ios-ease);
+}
+.tp-pages li[data-dropped] .tp-page-tile { border-style: dashed; text-decoration: line-through; }
+
+.tp-page-tools { display: flex; gap: 2px; }
+.tp-page-tools button {
+  width: 28px; height: 28px;
+  border: 0;
+  border-radius: 7px;
+  background: var(--ios-fill);
+  color: var(--ios-label-2);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+.tp-page-tools button:hover:not(:disabled) { background: var(--ios-fill); color: var(--ios-label); }
+.tp-page-tools button[data-danger]:hover { color: var(--ios-red); }
+.tp-page-tools button:disabled { opacity: 0.35; cursor: not-allowed; }

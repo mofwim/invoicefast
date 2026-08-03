@@ -2,29 +2,41 @@ A small market of tools that do their work in the browser. No account, no
 upload, no queue — the file stays on the reader's device, and each tool says so
 on its own page rather than as a slogan in a header.
 
-**The market lives at `/tools`.**
+**The market lives at `/nl/tools` and `/en/tools`.**
 
-| Tool | What it does |
+| Category | Tools |
 | --- | --- |
-| [Mijn Afspraken](#mijn-afspraken--al-je-afspraken-op-één-plek) (`/afspraken`) | Appointments out of a calendar *and* out of e-mail, in three tabs |
-| E-mail uitpakken (`/tools/email-uitpakken`) | Open a `.eml` and save its attachments |
-| Agenda omzetten (`/tools/agenda-omzetten`) | ICS → CSV for a spreadsheet, and back again |
-| InvoiceFast (`/`) | A free invoice generator |
+| Images | compress · convert (JPG/PNG/WebP) · resize for social media · favicon set · watermark |
+| PDF | merge · split · rotate and delete pages · images to PDF · watermark and page numbers |
+| Files | open a `.eml` and pull out its attachments |
+| Calendar | ICS to CSV and back · [Mijn Afspraken](#mijn-afspraken--al-je-afspraken-op-één-plek) at `/afspraken` |
+| Business | [InvoiceFast](#invoicefast--free-invoice-generator-web) at `/` |
 
 ### Adding a tool
 
-Two steps, on purpose:
+Two steps, in any language:
 
-1. An entry in `lib/tools/registry.js` — name, tagline, category, icon, tint.
-   The hub renders straight from that list.
-2. A page under `app/tools/<slug>/` wrapped in `ToolShell`, which supplies the
-   back link, the title, the shared surface and the privacy note.
+1. An entry in `lib/tools/registry.js` — its words and its slug, per language.
+2. A component in `components/tools/<id>/`, listed in `implementations.js`.
 
-The palette lives once in `app/ios-theme.css`, so a new tool inherits the look
-instead of re-inventing it, and follows the same light/dark preference.
+No page file and no routing change: one dynamic route serves the whole market,
+and implementations load lazily so a visitor downloads only the tool they
+opened while the words around it still render on the server. The palette lives
+once in `app/ios-theme.css`; shared chrome strings in `lib/i18n/ui.js`, each
+tool's own strings in `lib/i18n/tools.js` with the languages side by side per
+key, so a missing translation is visible at a glance.
 
-The engines are shared too: `E-mail uitpakken` is the MIME reader written for
-Mijn Afspraken, and `Agenda omzetten` is its iCalendar reader plus the lenient
+### Adding a language
+
+An entry in `LOCALES` (`lib/i18n/locales.js`), then an `i18n` key on each tool
+and a dictionary block. German is already listed as planned.
+
+Slugs are translated too — `/nl/tools/pdf-samenvoegen` against
+`/en/tools/merge-pdf` — because that is most of what a search engine reads, and
+every page declares its alternates so the two versions do not compete.
+
+The engines are shared: the e-mail tool is the MIME reader written for Mijn
+Afspraken, and the calendar converter is its iCalendar reader plus the lenient
 date reader that copes with `half elf` in a spreadsheet cell.
 
 ---
@@ -261,7 +273,7 @@ lib/afspraken/
 ├── idb.js         attachment bytes
 └── demo.js        the worked example
 
-tests/            151 tests; import.test.mjs is the corpus of real mail shapes
+tests/            161 tests; import.test.mjs is the corpus of real mail shapes
 ```
 
 ### Running it

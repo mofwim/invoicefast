@@ -15,6 +15,11 @@ const IMPLEMENTATIONS = {
   "resize-image": dynamic(() => import("./resize-image")),
   "make-favicon": dynamic(() => import("./make-favicon")),
   "watermark-image": dynamic(() => import("./watermark-image")),
+  "merge-pdf": dynamic(() => import("./merge-pdf")),
+  "split-pdf": dynamic(() => import("./split-pdf")),
+  "organise-pdf": dynamic(() => import("./organise-pdf")),
+  "images-to-pdf": dynamic(() => import("./images-to-pdf")),
+  "stamp-pdf": dynamic(() => import("./stamp-pdf")),
   "unpack-email": dynamic(() => import("./unpack-email")),
   "convert-calendar": dynamic(() => import("./convert-calendar")),
 };
