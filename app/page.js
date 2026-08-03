@@ -88,6 +88,7 @@ export default function Home() {
           <span className="logo">▮▮</span> InvoiceFast
         </div>
         <div className="tagline">Free invoice generator — no signup</div>
+        <a className="cross-link" href="/afspraken">Mijn Afspraken →</a>
         {paid ? (
           <span className="pro-badge">Pro</span>
         ) : (
