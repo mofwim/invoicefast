@@ -22,6 +22,16 @@ const IMPLEMENTATIONS = {
   "stamp-pdf": dynamic(() => import("./stamp-pdf")),
   "unpack-email": dynamic(() => import("./unpack-email")),
   "convert-calendar": dynamic(() => import("./convert-calendar")),
+  "word-count": dynamic(() => import("./word-count")),
+  "json-format": dynamic(() => import("./json-format")),
+  base64: dynamic(() => import("./base64")),
+  "text-diff": dynamic(() => import("./text-diff")),
+  "slug-url": dynamic(() => import("./slug-url")),
+  "qr-code": dynamic(() => import("./qr-code")),
+  password: dynamic(() => import("./password")),
+  hash: dynamic(() => import("./hash")),
+  "vat-calculator": dynamic(() => import("./vat-calculator")),
+  "iban-check": dynamic(() => import("./iban-check")),
 };
 
 export function loadTool(id) {

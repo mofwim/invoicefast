@@ -191,7 +191,7 @@ export function Segmented({ value, onChange, options, label }) {
   );
 }
 
-export function CopyButton({ text, label = "Kopiëren", className = "btn btn-quiet" }) {
+export function CopyButton({ text, label = "Kopiëren", copiedLabel = "Gekopieerd", className = "btn btn-quiet" }) {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
@@ -215,13 +215,13 @@ export function CopyButton({ text, label = "Kopiëren", className = "btn btn-qui
       }}
     >
       <Icon name={done ? "check" : "file"} size={15} />
-      {done ? "Gekopieerd" : label}
+      {done ? copiedLabel : label}
     </button>
   );
 }
 
 /** A file that came out of a tool: preview, size, and a way to keep it. */
-export function ResultFile({ name, blob, previewUrl, meta, onDownload }) {
+export function ResultFile({ name, blob, previewUrl, meta, onDownload, saveLabel = "Opslaan" }) {
   return (
     <li>
       {previewUrl ? (
@@ -238,7 +238,7 @@ export function ResultFile({ name, blob, previewUrl, meta, onDownload }) {
         className="btn btn-quiet btn-sm"
         onClick={() => (onDownload ? onDownload() : download(name, blob))}
       >
-        <Icon name="download" size={15} /> Opslaan
+        <Icon name="download" size={15} /> {saveLabel}
       </button>
     </li>
   );
