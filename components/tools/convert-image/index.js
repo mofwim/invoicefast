@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { Actions, Field, FileDrop, Note, Panel, Segmented, Slider, ResultFile, downloadAll, formatBytes, Icon } from "../ui";
 import { EXTENSION, MIME, encode, loadImage, render, renameExtension, supportsType } from "../../../lib/tools/image";
+import { toolStrings } from "../../../lib/i18n/tools";
 
-export default function Converter() {
+export default function Converter({ locale = "nl" }) {
+  const t = toolStrings("convert-image", locale);
   const [items, setItems] = useState([]);
   const [format, setFormat] = useState(MIME.webp);
   const [quality, setQuality] = useState(85);
@@ -61,10 +63,10 @@ export default function Converter() {
 
   return (
     <>
-      <Panel title="Waar naartoe">
-        <Field label="Formaat">
+      <Panel title={t("target")}>
+        <Field label={t("format")}>
           <Segmented
-            label="Formaat"
+            label={t("format")}
             value={format}
             onChange={setFormat}
             options={[
@@ -75,12 +77,12 @@ export default function Converter() {
           />
         </Field>
         {format !== MIME.png && (
-          <Field label="Kwaliteit">
+          <Field label={t("quality")}>
             <Slider value={quality} onChange={setQuality} min={40} max={100} suffix="%" />
           </Field>
         )}
         {!webpOk && (
-          <Note kind="warn">Deze browser maakt geen WebP. JPG en PNG werken wel.</Note>
+          <Note kind="warn">{t("noWebp")}</Note>
         )}
       </Panel>
 
@@ -90,15 +92,15 @@ export default function Converter() {
         multiple
         icon="shuffle"
         paste
-        title="Sleep je afbeeldingen hierheen"
-        hint="meerdere tegelijk mag — kies eerst hierboven het formaat"
+        title={t("dropMany")}
+        hint={t("dropManyHint")}
       />
 
-      {busy && <Note kind="ok">Bezig met omzetten…</Note>}
+      {busy && <Note kind="ok">{t("converting")}</Note>}
       {error && <Note kind="error">{error}</Note>}
 
       {items.length > 0 && (
-        <Panel title={`Klaar (${items.length})`}>
+        <Panel title={t("done", { n: items.length })}>
           <ul className="tp-rows">
             {items.map((item, i) => (
               <ResultFile
@@ -117,7 +119,7 @@ export default function Converter() {
                 className="btn btn-primary"
                 onClick={() => downloadAll(items.map((item) => ({ name: item.name, data: item.blob })))}
               >
-                <Icon name="download" size={16} /> Alles opslaan
+                <Icon name="download" size={16} /> {t("saveAll")}
               </button>
             </Actions>
           )}

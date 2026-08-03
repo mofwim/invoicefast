@@ -10,7 +10,7 @@
  */
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import Icon from "../afspraken/Icons";
+import Icon from "../../app/afspraken/Icons";
 
 export { formatBytes } from "../../lib/tools/image";
 

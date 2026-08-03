@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import Icon from "../../afspraken/Icons";
+import Icon from "../../../app/afspraken/Icons";
 import { COLUMNS, csvToIcs, icsToCsv } from "../../../lib/tools/icscsv";
+import { toolStrings } from "../../../lib/i18n/tools";
 
 function download(name, text, mime) {
   const blob = new Blob([text], { type: mime });
@@ -16,7 +17,8 @@ function download(name, text, mime) {
 
 const looksLikeIcs = (text) => /BEGIN:VCALENDAR|BEGIN:VEVENT/i.test(text.slice(0, 4000));
 
-export default function Converter() {
+export default function Converter({ locale = "nl" }) {
+  const t = toolStrings("convert-calendar", locale);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const [dragging, setDragging] = useState(false);
@@ -29,7 +31,7 @@ export default function Converter() {
 
     if (!text.trim()) {
       setResult(null);
-      setError("Dit bestand is leeg.");
+      setError(t("empty"));
       return;
     }
 
@@ -37,7 +39,7 @@ export default function Converter() {
       const { csv, rows, count, errors } = icsToCsv(text);
       if (!count) {
         setResult(null);
-        setError(errors[0] || "Geen afspraken gevonden in dit agendabestand.");
+        setError(errors[0] || t("noEvents"));
         return;
       }
       setResult({ kind: "csv", text: csv, rows, count, errors, sourceName });
@@ -47,7 +49,7 @@ export default function Converter() {
     const { ics, count, errors, skipped } = csvToIcs(text);
     if (!count) {
       setResult(null);
-      setError(errors[0] || "Geen rijen met een bruikbare datum gevonden.");
+      setError(errors[0] || t("noRows"));
       return;
     }
     setResult({ kind: "ics", text: ics, count, errors, skipped, sourceName });
@@ -89,8 +91,8 @@ export default function Converter() {
         }}
       >
         <Icon name="calendar" size={26} />
-        <strong>Sleep een .ics of .csv hierheen</strong>
-        <small>de richting wordt vanzelf herkend</small>
+        <strong>{t("drop")}</strong>
+        <small>{t("dropHint")}</small>
         <input
           ref={fileRef}
           type="file"
@@ -105,7 +107,7 @@ export default function Converter() {
       </div>
 
       <div className="tp-panel" style={{ marginTop: 14 }}>
-        <h3>Of plak de inhoud</h3>
+        <h3>{t("pastePanel")}</h3>
         <textarea
           className="tp-textarea"
           value={pasted}
@@ -120,7 +122,7 @@ export default function Converter() {
             disabled={!pasted.trim()}
             onClick={() => convert(pasted, "geplakt")}
           >
-            Omzetten
+            {t("convert")}
           </button>
         </div>
       </div>
@@ -138,15 +140,15 @@ export default function Converter() {
             <Icon name={result.errors?.length ? "alert" : "check"} size={16} />
             <span>
               {result.kind === "csv"
-                ? `${result.count} ${result.count === 1 ? "afspraak" : "afspraken"} omgezet naar een tabel.`
-                : `${result.count} ${result.count === 1 ? "rij" : "rijen"} omgezet naar een agendabestand.`}
-              {result.skipped > 0 && ` ${result.skipped} overgeslagen.`}
+                ? t("toTable", { n: result.count, word: t(result.count === 1 ? "appointment" : "appointments") })
+                : t("toCalendar", { n: result.count, word: t(result.count === 1 ? "row" : "rows") })}
+              {result.skipped > 0 && ` ${t("skipped", { n: result.skipped })}`}
             </span>
           </p>
 
           {result.errors?.length > 0 && (
             <details className="tp-note tp-note-warn" style={{ display: "block" }}>
-              <summary>{result.errors.length} melding(en)</summary>
+              <summary>{t("messages", { n: result.errors.length })}</summary>
               <ul style={{ margin: "8px 0 0", paddingLeft: 18 }}>
                 {result.errors.slice(0, 10).map((message, i) => (
                   <li key={i}>{message}</li>
@@ -185,7 +187,7 @@ export default function Converter() {
 
           {result.kind === "csv" && result.rows.length > 12 && (
             <p className="tp-sub" style={{ margin: "10px 0 0", fontSize: 13 }}>
-              De eerste 12 van {result.rows.length} rijen. Het bestand bevat ze allemaal.
+              {t("firstRows", { n: result.rows.length })}
             </p>
           )}
 
@@ -207,7 +209,7 @@ export default function Converter() {
               className="btn btn-quiet"
               onClick={() => navigator.clipboard?.writeText(result.text).catch(() => {})}
             >
-              Kopiëren
+              {"Kopiëren"}
             </button>
           </div>
         </div>

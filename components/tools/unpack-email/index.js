@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import Icon from "../../afspraken/Icons";
+import Icon from "../../../app/afspraken/Icons";
 import { bytesToBinaryString, htmlToText, parseEml } from "../../../lib/afspraken/email";
 import { parseIcs } from "../../../lib/afspraken/ics";
+import { toolStrings } from "../../../lib/i18n/tools";
 
 function formatBytes(bytes) {
   if (!bytes) return "0 B";
@@ -25,7 +26,8 @@ function download(name, data, mime) {
 const safeName = (value, fallback) =>
   (String(value || "").replace(/[^\p{L}\p{N}._ -]+/gu, "-").trim() || fallback).slice(0, 80);
 
-export default function Unpacker() {
+export default function Unpacker({ locale = "nl" }) {
+  const t = toolStrings("unpack-email", locale);
   const [mail, setMail] = useState(null);
   const [view, setView] = useState("text");
   const [error, setError] = useState("");
@@ -40,7 +42,7 @@ export default function Unpacker() {
 
       if (!/^[\w-]+:/m.test(raw.slice(0, 800))) {
         setMail(null);
-        setError("Dit lijkt geen opgeslagen e-mail. Verwacht een .eml-bestand.");
+        setError(t("notMail"));
         return;
       }
 
@@ -53,7 +55,7 @@ export default function Unpacker() {
       setView(parsed.text ? "text" : "html");
     } catch (err) {
       setMail(null);
-      setError(`Kon dit bestand niet lezen: ${err.message}`);
+      setError(t("unreadable", { message: err.message }));
     }
   }, []);
 
@@ -86,8 +88,8 @@ export default function Unpacker() {
         }}
       >
         <Icon name="mail" size={26} />
-        <strong>Sleep een .eml hierheen</strong>
-        <small>of klik om er een te kiezen</small>
+        <strong>{t("drop")}</strong>
+        <small>{t("dropHint")}</small>
         <input
           ref={fileRef}
           type="file"
@@ -112,23 +114,23 @@ export default function Unpacker() {
         <>
           <div className="tp-panel" style={{ marginTop: 14 }}>
             <div className="tp-mail-head">
-              <h3>{mail.subject || "(geen onderwerp)"}</h3>
+              <h3>{mail.subject || t("noSubject")}</h3>
               <span>
-                {mail.from ? `${mail.from.name}${mail.from.email ? ` · ${mail.from.email}` : ""}` : "Onbekende afzender"}
+                {mail.from ? `${mail.from.name}${mail.from.email ? ` · ${mail.from.email}` : ""}` : t("unknownSender")}
                 {mail.sentAt ? ` · ${new Date(mail.sentAt).toLocaleString("nl-NL", { dateStyle: "full", timeStyle: "short" })}` : ""}
               </span>
               {mail.to.length > 0 && (
-                <span>Aan: {mail.to.map((person) => person.email || person.name).join(", ")}</span>
+                <span>{t("to")}: {mail.to.map((person) => person.email || person.name).join(", ")}</span>
               )}
             </div>
 
             {html && text && (
-              <div className="tp-seg" role="group" aria-label="Weergave van de tekst">
+              <div className="tp-seg" role="group" aria-label={t("viewLabel")}>
                 <button type="button" aria-pressed={view === "text"} onClick={() => setView("text")}>
-                  Tekst
+                  {t("viewText")}
                 </button>
                 <button type="button" aria-pressed={view === "html"} onClick={() => setView("html")}>
-                  Opmaak
+                  {t("viewHtml")}
                 </button>
               </div>
             )}
@@ -137,7 +139,7 @@ export default function Unpacker() {
               // Rendered in a sandboxed frame: the mail's own markup and any
               // script it carries can never touch this page.
               <iframe
-                title="Inhoud van de e-mail"
+                title={t("frameTitle")}
                 sandbox=""
                 srcDoc={html}
                 style={{
@@ -149,7 +151,7 @@ export default function Unpacker() {
                 }}
               />
             ) : (
-              <pre className="tp-body">{text || "(deze e-mail heeft geen tekst)"}</pre>
+              <pre className="tp-body">{text || t("noText")}</pre>
             )}
 
             <div className="tp-actions">
@@ -159,14 +161,14 @@ export default function Unpacker() {
                 onClick={() => download(`${safeName(mail.subject, "e-mail")}.txt`, text, "text/plain;charset=utf-8")}
                 disabled={!text}
               >
-                <Icon name="download" size={15} /> Tekst opslaan
+                <Icon name="download" size={15} /> {t("saveText")}
               </button>
             </div>
           </div>
 
           {mail.invites.length > 0 && (
             <div className="tp-panel">
-              <h3>Uitnodiging in deze e-mail</h3>
+              <h3>{t("invitePanel")}</h3>
               <ul className="tp-rows">
                 {mail.invites.flatMap((invite, i) =>
                   invite.events.map((event, j) => (
@@ -192,7 +194,7 @@ export default function Unpacker() {
               </ul>
               <div className="tp-actions">
                 <a className="btn btn-quiet btn-sm" href="/afspraken">
-                  <Icon name="clock" size={15} /> Openen in Mijn Afspraken
+                  <Icon name="clock" size={15} /> {t("openInApp")}
                 </a>
               </div>
             </div>
@@ -200,12 +202,12 @@ export default function Unpacker() {
 
           <div className="tp-panel">
             <h3>
-              Bijlagen{mail.attachments.length > 0 ? ` (${mail.attachments.length})` : ""}
+              {t("attachments")}{mail.attachments.length > 0 ? ` (${mail.attachments.length})` : ""}
             </h3>
             {mail.attachments.length === 0 ? (
               <p className="tp-note tp-note-warn" style={{ margin: 0 }}>
                 <Icon name="alert" size={16} />
-                Deze e-mail heeft geen bijlagen.
+                {t("noAttachments")}
               </p>
             ) : (
               <>
@@ -226,7 +228,7 @@ export default function Unpacker() {
                           download(attachment.name || `bijlage-${i + 1}`, attachment.bytes, attachment.mime)
                         }
                       >
-                        <Icon name="download" size={15} /> Opslaan
+                        <Icon name="download" size={15} /> {t("save")}
                       </button>
                     </li>
                   ))}
@@ -244,7 +246,7 @@ export default function Unpacker() {
                       )
                     }
                   >
-                    <Icon name="download" size={16} /> Alles opslaan
+                    <Icon name="download" size={16} /> {t("saveAll")}
                   </button>
                 </div>
               </>

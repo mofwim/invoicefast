@@ -3,14 +3,15 @@
 import { useCallback, useEffect, useState } from "react";
 import { Actions, Field, FileDrop, Note, Panel, Segmented, Slider, download, formatBytes, Icon } from "../ui";
 import { MIME, encode, loadImage, makeCanvas, renameExtension } from "../../../lib/tools/image";
+import { toolStrings } from "../../../lib/i18n/tools";
 
-const PLACES = [
-  { value: "bottom-right", label: "Rechtsonder" },
-  { value: "bottom-left", label: "Linksonder" },
-  { value: "top-right", label: "Rechtsboven" },
-  { value: "top-left", label: "Linksboven" },
-  { value: "center", label: "Midden" },
-  { value: "tile", label: "Over de hele foto" },
+const places = (t) => [
+  { value: "bottom-right", label: t("bottomRight") },
+  { value: "bottom-left", label: t("bottomLeft") },
+  { value: "top-right", label: t("topRight") },
+  { value: "top-left", label: t("topLeft") },
+  { value: "center", label: t("centre") },
+  { value: "tile", label: t("tile") },
 ];
 
 /** Where the text sits, given the canvas and how big the text turned out. */
@@ -28,7 +29,8 @@ function place(where, canvas, textWidth, textHeight, margin) {
   }
 }
 
-export default function Watermark() {
+export default function Watermark({ locale = "nl" }) {
+  const t = toolStrings("watermark-image", locale);
   const [file, setFile] = useState(null);
   const [image, setImage] = useState(null);
   const [result, setResult] = useState(null);
@@ -113,16 +115,16 @@ export default function Watermark() {
         accept="image/*"
         icon="pencil"
         paste
-        title="Sleep een afbeelding hierheen"
-        hint="of klik om er een te kiezen"
+        title={t("dropImage")}
+        hint={t("dropHint")}
       />
 
       {error && <Note kind="error">{error}</Note>}
 
       {image && (
         <>
-          <Panel title="Watermerk">
-            <Field label="Tekst">
+          <Panel title={t("panel")}>
+            <Field label={t("text")}>
               {(id) => (
                 <input
                   id={id}
@@ -130,37 +132,37 @@ export default function Watermark() {
                   value={text}
                   maxLength={80}
                   onChange={(event) => setText(event.target.value)}
-                  placeholder="© jouw naam"
+                  placeholder={t("textPlaceholder")}
                 />
               )}
             </Field>
 
-            <Field label="Plek">
+            <Field label={t("place")}>
               {(id) => (
                 <select id={id} value={where} onChange={(event) => setWhere(event.target.value)}>
-                  {PLACES.map((option) => (
+                  {places(t).map((option) => (
                     <option key={option.value} value={option.value}>{option.label}</option>
                   ))}
                 </select>
               )}
             </Field>
 
-            <Field label="Grootte">
+            <Field label={t("scale")}>
               <Slider value={size} onChange={setSize} min={2} max={14} suffix="%" />
             </Field>
 
-            <Field label="Doorzichtigheid">
+            <Field label={t("opacity")}>
               <Slider value={opacity} onChange={setOpacity} min={10} max={100} suffix="%" />
             </Field>
 
-            <Field label="Kleur">
+            <Field label={t("colour")}>
               <Segmented
-                label="Kleur"
+                label={t("colour")}
                 value={colour}
                 onChange={setColour}
                 options={[
-                  { value: "#ffffff", label: "Wit" },
-                  { value: "#000000", label: "Zwart" },
+                  { value: "#ffffff", label: t("white") },
+                  { value: "#000000", label: t("black") },
                 ]}
               />
             </Field>
@@ -168,14 +170,14 @@ export default function Watermark() {
 
           {result && (
             <Panel>
-              <img className="tp-preview" src={result.url} alt="Voorbeeld met watermerk" />
+              <img className="tp-preview" src={result.url} alt={t("previewAlt")} />
               <Actions>
                 <button
                   type="button"
                   className="btn btn-primary"
                   onClick={() => download(renameExtension(file.name, "jpg").replace(/\.jpg$/, "-watermerk.jpg"), result.blob)}
                 >
-                  <Icon name="download" size={16} /> Opslaan ({formatBytes(result.blob.size)})
+                  <Icon name="download" size={16} /> {t("save")} ({formatBytes(result.blob.size)})
                 </button>
               </Actions>
             </Panel>

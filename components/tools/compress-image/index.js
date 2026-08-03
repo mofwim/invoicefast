@@ -14,16 +14,18 @@ import {
   Icon,
 } from "../ui";
 import { MIME, compressToBudget, loadImage, renameExtension, supportsType } from "../../../lib/tools/image";
+import { toolStrings } from "../../../lib/i18n/tools";
 
-const BUDGETS = [
-  { value: 0, label: "Vrij" },
+const budgets = (t) => [
+  { value: 0, label: t("free") },
   { value: 250 * 1024, label: "250 kB" },
   { value: 1024 * 1024, label: "1 MB" },
   { value: 2 * 1024 * 1024, label: "2 MB" },
   { value: 5 * 1024 * 1024, label: "5 MB" },
 ];
 
-export default function Compressor() {
+export default function Compressor({ locale = "nl" }) {
+  const t = toolStrings("compress-image", locale);
   const [file, setFile] = useState(null);
   const [image, setImage] = useState(null);
   const [result, setResult] = useState(null);
@@ -95,29 +97,29 @@ export default function Compressor() {
         accept="image/*"
         icon="image"
         paste
-        title="Sleep een afbeelding hierheen"
-        hint="of klik om er een te kiezen — plakken mag ook"
+        title={t("dropImage")}
+        hint={t("dropHintPaste")}
       />
 
       {error && <Note kind="error">{error}</Note>}
 
       {image && (
         <>
-          <Panel title="Instellingen">
-            <Field label="Maximale grootte" hint="De kwaliteit zakt net zo ver als nodig is">
+          <Panel title={t("settings")}>
+            <Field label={t("maxSize")} hint={t("maxSizeHint")}>
               <Segmented
-                label="Maximale grootte"
+                label={t("maxSize")}
                 value={budget}
                 onChange={setBudget}
-                options={BUDGETS}
+                options={budgets(t)}
               />
             </Field>
 
-            <Field label="Startkwaliteit">
+            <Field label={t("startQuality")}>
               <Slider value={quality} onChange={setQuality} min={30} max={95} suffix="%" />
             </Field>
 
-            <Field label="Breedte maximaal" hint="0 laat de afmeting met rust">
+            <Field label={t("maxWidth")} hint={t("maxWidthHint")}>
               {(id) => (
                 <input
                   id={id}
@@ -131,9 +133,9 @@ export default function Compressor() {
               )}
             </Field>
 
-            <Field label="Formaat">
+            <Field label={t("format")}>
               <Segmented
-                label="Formaat"
+                label={t("format")}
                 value={format}
                 onChange={setFormat}
                 options={[
@@ -146,7 +148,7 @@ export default function Compressor() {
 
             <Actions>
               <button type="button" className="btn btn-primary" onClick={run} disabled={busy}>
-                {busy ? "Bezig…" : "Comprimeren"}
+                {busy ? t("busy") : t("run")}
               </button>
             </Actions>
           </Panel>
@@ -155,39 +157,38 @@ export default function Compressor() {
             <Panel>
               {result.missed ? (
                 <Note kind="warn">
-                  Zo klein krijgt hij hem niet zonder de foto onherkenbaar te maken. Zet de breedte
-                  lager of kies een ruimere limiet.
+{t("missed")}
                 </Note>
               ) : (
                 <Note kind="ok">
                   {saved > 0.02
-                    ? `${Math.round(saved * 100)}% kleiner — van ${formatBytes(file.size)} naar ${formatBytes(result.blob.size)}.`
-                    : `Deze afbeelding was al zuinig: ${formatBytes(result.blob.size)}.`}
+                    ? t("smaller", { pct: Math.round(saved * 100), was: formatBytes(file.size), now: formatBytes(result.blob.size) })
+                    : t("alreadySmall", { now: formatBytes(result.blob.size) })}
                 </Note>
               )}
 
               <dl className="tp-stat">
                 <div>
-                  <dt>Was</dt>
+                  <dt>{t("was")}</dt>
                   <dd>{formatBytes(file.size)}</dd>
                 </div>
                 <div>
-                  <dt>Wordt</dt>
+                  <dt>{t("becomes")}</dt>
                   <dd className={saved > 0.02 ? "tp-win" : ""}>{formatBytes(result.blob.size)}</dd>
                 </div>
                 <div>
-                  <dt>Afmeting</dt>
+                  <dt>{t("size")}</dt>
                   <dd>
                     {result.width}×{result.height}
                   </dd>
                 </div>
                 <div>
-                  <dt>Kwaliteit</dt>
+                  <dt>{t("quality")}</dt>
                   <dd>{result.used}%</dd>
                 </div>
               </dl>
 
-              <img className="tp-preview" src={result.url} alt="Resultaat" />
+              <img className="tp-preview" src={result.url} alt={t("result")} />
 
               <Actions>
                 <button
@@ -195,7 +196,7 @@ export default function Compressor() {
                   className="btn btn-primary"
                   onClick={() => download(renameExtension(file.name, extension), result.blob)}
                 >
-                  <Icon name="download" size={16} /> Opslaan
+                  <Icon name="download" size={16} /> {t("save")}
                 </button>
               </Actions>
             </Panel>

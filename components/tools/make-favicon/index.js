@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Actions, CopyButton, Field, FileDrop, Note, Panel, ResultFile, download, downloadAll, formatBytes, Icon } from "../ui";
 import { FAVICON_SIZES, MIME, buildIco, encode, loadImage, render } from "../../../lib/tools/image";
+import { toolStrings } from "../../../lib/i18n/tools";
 
 /** The sizes that actually end up in an .ico; the rest ship as separate PNGs. */
 const ICO_SIZES = [16, 32, 48];
@@ -12,7 +13,8 @@ const SNIPPET = `<link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/favicon-180.png">`;
 
-export default function Favicons() {
+export default function Favicons({ locale = "nl" }) {
+  const t = toolStrings("make-favicon", locale);
   const [set, setSet] = useState(null);
   const [background, setBackground] = useState("");
   const [busy, setBusy] = useState(false);
@@ -83,17 +85,17 @@ export default function Favicons() {
         accept="image/*"
         icon="sparkle"
         paste
-        title="Sleep je logo hierheen"
-        hint="vierkant werkt het best — PNG of SVG met transparantie mag"
+        title={t("dropLogo")}
+        hint={t("dropLogoHint")}
       />
 
       {error && <Note kind="error">{error}</Note>}
-      {busy && <Note kind="ok">Bezig met maken…</Note>}
+      {busy && <Note kind="ok">{t("making")}</Note>}
 
       {set && (
         <>
-          <Panel title="Achtergrond">
-            <Field label="Vulling" hint="Leeg laten houdt de transparantie">
+          <Panel title={t("backgroundPanel")}>
+            <Field label={t("fill")} hint={t("fillHint")}>
               <span className="tp-check">
                 <input
                   type="checkbox"
@@ -105,19 +107,19 @@ export default function Favicons() {
                     type="color"
                     value={background}
                     onChange={(event) => setBackground(event.target.value)}
-                    aria-label="Achtergrondkleur"
+                    aria-label={t("fillColour")}
                   />
                 )}
               </span>
             </Field>
           </Panel>
 
-          <Panel title={`${set.files.length} maten + favicon.ico`}>
+          <Panel title={t("setTitle", { n: set.files.length })}>
             <ul className="tp-rows">
               <ResultFile
                 name="favicon.ico"
                 blob={set.ico}
-                meta={`${ICO_SIZES.join(", ")} px in één bestand · ${formatBytes(set.ico.size)}`}
+                meta={`${t("icoMeta", { sizes: ICO_SIZES.join(", ") })} · ${formatBytes(set.ico.size)}`}
                 onDownload={() => download("favicon.ico", set.ico)}
               />
               {set.files.map((file) => (
@@ -142,15 +144,15 @@ export default function Favicons() {
                   ])
                 }
               >
-                <Icon name="download" size={16} /> Alles opslaan
+                <Icon name="download" size={16} /> {t("saveAll")}
               </button>
             </Actions>
           </Panel>
 
-          <Panel title="In je HTML">
+          <Panel title={t("htmlPanel")}>
             <pre className="tp-out">{SNIPPET}</pre>
             <Actions>
-              <CopyButton text={SNIPPET} label="Regels kopiëren" className="btn btn-quiet btn-sm" />
+              <CopyButton text={SNIPPET} label={t("copyLines")} className="btn btn-quiet btn-sm" />
             </Actions>
           </Panel>
         </>

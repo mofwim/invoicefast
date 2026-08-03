@@ -1,4 +1,4 @@
-@import "../ios-theme.css";
+@import "./ios-theme.css";
 
 /* ==========================================================================
    The market, and the shell every tool sits in.
@@ -63,6 +63,61 @@
 .tp-back:active { opacity: 0.5; }
 /* The chevron is drawn pointing forward; back is the same shape, turned. */
 .tp-back-icon { transform: rotate(180deg); }
+
+.tp-nav-spacer { flex: 1; }
+
+/* Language links, not a dropdown — a crawler should be able to follow them. */
+.tp-langs { display: inline-flex; gap: 2px; margin-left: auto; padding: 2px; border-radius: 9px; background: var(--ios-fill); }
+.tp-langs a {
+  padding: 5px 11px;
+  border-radius: 7px;
+  color: var(--ios-label-2);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+}
+.tp-langs a[aria-current="true"] { background: var(--ios-pill); box-shadow: var(--ios-pill-shadow); color: var(--ios-label); }
+.tp-langs a:active { opacity: 0.5; }
+
+.tp-search {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 10px;
+  margin-bottom: 24px;
+  border-radius: 10px;
+  background: var(--ios-fill);
+  color: var(--ios-label-2);
+}
+.tp-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  font-size: 17px;
+  color: var(--ios-label);
+}
+.tp-search input:focus { outline: none; }
+.tp-search input::-webkit-search-cancel-button { display: none; }
+.tp-search button {
+  display: inline-flex;
+  width: 22px; height: 22px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--ios-label-3);
+  cursor: pointer;
+}
+
+.tp-empty { margin: 0; padding: 26px 18px; border-radius: var(--ios-radius); background: var(--ios-card); text-align: center; font-size: 15px; color: var(--ios-label-2); }
+.tp-related { margin-top: 30px; padding-top: 22px; border-top: 0.5px solid var(--ios-separator); }
+.tp-related .tp-card p { display: none; }
 
 .tp-title {
   margin: 4px 0 8px;

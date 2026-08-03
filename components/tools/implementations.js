@@ -1,0 +1,30 @@
+import dynamic from "next/dynamic";
+
+/**
+ * Which code belongs to which registry entry.
+ *
+ * Loaded lazily on purpose: one dynamic route serves the whole market, so a
+ * static import list would ship every tool's code to every tool's page. This
+ * way each tool gets its own chunk and a visitor downloads only the one they
+ * opened. The words around it are still rendered on the server, so the page
+ * has its content before any of this arrives.
+ */
+const IMPLEMENTATIONS = {
+  "compress-image": dynamic(() => import("./compress-image")),
+  "convert-image": dynamic(() => import("./convert-image")),
+  "resize-image": dynamic(() => import("./resize-image")),
+  "make-favicon": dynamic(() => import("./make-favicon")),
+  "watermark-image": dynamic(() => import("./watermark-image")),
+  "unpack-email": dynamic(() => import("./unpack-email")),
+  "convert-calendar": dynamic(() => import("./convert-calendar")),
+};
+
+export function loadTool(id) {
+  return IMPLEMENTATIONS[id] || null;
+}
+
+export function hasImplementation(id) {
+  return Boolean(IMPLEMENTATIONS[id]);
+}
+
+export const IMPLEMENTED_IDS = Object.keys(IMPLEMENTATIONS);

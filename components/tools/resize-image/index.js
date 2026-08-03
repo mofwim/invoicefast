@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Actions, Field, FileDrop, Note, Panel, Segmented, download, formatBytes, Icon } from "../ui";
 import { MIME, SOCIAL_PRESETS, encode, loadImage, render, renameExtension } from "../../../lib/tools/image";
+import { toolStrings } from "../../../lib/i18n/tools";
 
-export default function Resizer() {
+export default function Resizer({ locale = "nl" }) {
+  const t = toolStrings("resize-image", locale);
   const [file, setFile] = useState(null);
   const [image, setImage] = useState(null);
   const [preset, setPreset] = useState("1080x1080");
@@ -68,16 +70,16 @@ export default function Resizer() {
         accept="image/*"
         icon="crop"
         paste
-        title="Sleep een afbeelding hierheen"
-        hint="of klik om er een te kiezen"
+        title={t("dropImage")}
+        hint={t("dropHint")}
       />
 
       {error && <Note kind="error">{error}</Note>}
 
       {image && (
         <>
-          <Panel title="Maat">
-            <Field label="Platform en plek">
+          <Panel title={t("sizePanel")}>
+            <Field label={t("platform")}>
               {(id) => (
                 <select id={id} value={preset} onChange={(event) => setPreset(event.target.value)}>
                   {SOCIAL_PRESETS.map((group) => (
@@ -93,20 +95,20 @@ export default function Resizer() {
               )}
             </Field>
 
-            <Field label="Passend maken" hint={fit === "cover" ? "Vult het kader, randen eraf" : "Alles blijft zichtbaar, met een rand erbij"}>
+            <Field label={t("fit")} hint={fit === "cover" ? t("fitCoverHint") : t("fitContainHint")}>
               <Segmented
-                label="Passend maken"
+                label={t("fit")}
                 value={fit}
                 onChange={setFit}
                 options={[
-                  { value: "cover", label: "Bijsnijden" },
-                  { value: "contain", label: "Passend" },
+                  { value: "cover", label: t("fitCover") },
+                  { value: "contain", label: t("fitContain") },
                 ]}
               />
             </Field>
 
             {fit === "contain" && (
-              <Field label="Kleur van de rand">
+              <Field label={t("borderColour")}>
                 {(id) => (
                   <input
                     id={id}
@@ -121,18 +123,18 @@ export default function Resizer() {
 
           {result && (
             <Panel title={label}>
-              <img className="tp-preview" src={result.url} alt="Voorbeeld" />
+              <img className="tp-preview" src={result.url} alt={t("preview")} />
               <dl className="tp-stat" style={{ marginTop: 14 }}>
                 <div>
-                  <dt>Origineel</dt>
+                  <dt>{t("original")}</dt>
                   <dd>{image.width}×{image.height}</dd>
                 </div>
                 <div>
-                  <dt>Wordt</dt>
+                  <dt>{t("becomes")}</dt>
                   <dd className="tp-win">{width}×{height}</dd>
                 </div>
                 <div>
-                  <dt>Grootte</dt>
+                  <dt>{t("fileSize")}</dt>
                   <dd>{formatBytes(result.blob.size)}</dd>
                 </div>
               </dl>
@@ -142,7 +144,7 @@ export default function Resizer() {
                   className="btn btn-primary"
                   onClick={() => download(renameExtension(file.name, "jpg").replace(/\.jpg$/, `-${width}x${height}.jpg`), result.blob)}
                 >
-                  <Icon name="download" size={16} /> Opslaan
+                  <Icon name="download" size={16} /> {t("save")}
                 </button>
               </Actions>
             </Panel>
