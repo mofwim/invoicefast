@@ -1,5 +1,7 @@
 import AfsprakenApp from "./AfsprakenApp";
 import Bootstrap from "./Bootstrap";
+import { STORAGE_KEY } from "../../lib/afspraken/store";
+import { themeBootScript } from "../../lib/afspraken/theme";
 
 export const metadata = {
   title: "Mijn Afspraken — al je afspraken op één plek",
@@ -33,15 +35,16 @@ export const viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f4f5f7" },
-    { media: "(prefers-color-scheme: dark)", color: "#0e1116" },
-  ],
+  // The chosen appearance may differ from the device's, so the colour that
+  // tints the browser chrome is kept in step from JavaScript instead.
+  themeColor: "#f2f2f7",
 };
 
 export default function AfsprakenPage() {
   return (
     <div className="ma-page">
+      {/* Runs before the first paint: a reader on dark never sees a white flash. */}
+      <script dangerouslySetInnerHTML={{ __html: themeBootScript(STORAGE_KEY) }} />
       <Bootstrap />
       <AfsprakenApp variant="full" />
     </div>

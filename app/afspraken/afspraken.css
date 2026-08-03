@@ -45,31 +45,32 @@
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  .ma-page,
-  .ma {
-    --ios-bg: #000000;
-    --ios-card: #1c1c1e;
-    --ios-raised: #1c1c1e;
-    --ios-label: #ffffff;
-    --ios-label-2: rgba(235, 235, 245, 0.6);
-    --ios-label-3: rgba(235, 235, 245, 0.3);
-    --ios-separator: rgba(84, 84, 88, 0.6);
-    --ios-fill: rgba(118, 118, 128, 0.24);
-    --ios-fill-2: rgba(118, 118, 128, 0.16);
+/* Dark lives behind one attribute, so "light", "dark" and "follow the device"
+   are all the same mechanism — the preference is resolved in JavaScript and a
+   script in the head applies it before the first paint. Keying it on a media
+   query instead would need two copies of this block to stay in step. */
+[data-theme="dark"] .ma-page,
+[data-theme="dark"] .ma {
+  --ios-bg: #000000;
+  --ios-card: #1c1c1e;
+  --ios-raised: #1c1c1e;
+  --ios-label: #ffffff;
+  --ios-label-2: rgba(235, 235, 245, 0.6);
+  --ios-label-3: rgba(235, 235, 245, 0.3);
+  --ios-separator: rgba(84, 84, 88, 0.6);
+  --ios-fill: rgba(118, 118, 128, 0.24);
+  --ios-fill-2: rgba(118, 118, 128, 0.16);
 
-    --ios-blue: #0a84ff;
-    --ios-red: #ff453a;
-    --ios-green: #30d158;
-    --ios-gray: #98989f;
+  --ios-blue: #0a84ff;
+  --ios-red: #ff453a;
+  --ios-green: #30d158;
+  --ios-gray: #98989f;
 
-    --ios-pill: #636366;
-    --ios-pill-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+  --ios-pill: #636366;
+  --ios-pill-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
 
-    --tint-l: 62%;
-    --tint-strength: 0.26;
-  }
-  .ma-page { color-scheme: dark; }
+  --tint-l: 62%;
+  --tint-strength: 0.26;
 }
 
 .ma-page {
@@ -404,9 +405,7 @@
 .ap:hover .ap-head,
 .ap[data-open] .ap-head { opacity: 1; }
 
-@media (prefers-color-scheme: dark) {
-  .ap-head:active { filter: brightness(1.25); }
-}
+[data-theme="dark"] .ap-head:active { filter: brightness(1.25); }
 
 .ap-rail { align-self: stretch; border-radius: 0 2px 2px 0; background: var(--rail); }
 .ap[data-tier="now"] .ap-rail { animation: ma-rail 2.4s ease-in-out infinite; }
@@ -452,10 +451,8 @@
 .ap-tag-warn { background: rgba(255, 149, 0, 0.18); color: #b35c00; }
 .ap-tag-clash { background: color-mix(in srgb, var(--ios-red) 15%, transparent); color: var(--ios-red); }
 
-@media (prefers-color-scheme: dark) {
-  .ap-tag { color: hsl(var(--h) calc(var(--s) * 0.8) 76%); }
-  .ap-tag-warn { color: #ff9f0a; }
-}
+[data-theme="dark"] .ap-tag { color: hsl(var(--h) calc(var(--s) * 0.8) 76%); }
+[data-theme="dark"] .ap-tag-warn { color: #ff9f0a; }
 
 .ap-meta {
   display: flex;
@@ -550,7 +547,7 @@
   font-weight: 600;
   flex: none;
 }
-@media (prefers-color-scheme: dark) { .ap-avatar { color: hsl(var(--h) calc(var(--s) * 0.8) 78%); } }
+[data-theme="dark"] .ap-avatar { color: hsl(var(--h) calc(var(--s) * 0.8) 78%); }
 
 .ap-person { display: flex; flex-direction: column; min-width: 0; }
 .ap-person-name { font-size: 15px; letter-spacing: -0.01em; }
@@ -574,7 +571,7 @@
   border-radius: 4px;
   flex: none;
 }
-@media (prefers-color-scheme: dark) { .ap-bring li::before { border-color: hsl(var(--h) calc(var(--s) * 0.7) 70%); } }
+[data-theme="dark"] .ap-bring li::before { border-color: hsl(var(--h) calc(var(--s) * 0.7) 70%); }
 
 .ap-clash { color: var(--ios-red); }
 .ap-clash strong { font-weight: 600; }
@@ -1005,7 +1002,15 @@
   font-size: 16px;
   letter-spacing: -0.01em;
 }
-.ma-field { border-radius: var(--radius) var(--radius) 0 0; }
+.ma-field:first-of-type { border-radius: var(--radius) var(--radius) 0 0; }
+.ma-field + .ma-field { position: relative; }
+.ma-field + .ma-field::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 14px; right: 0;
+  height: 0.5px;
+  background: var(--ios-separator);
+}
 .ma-check { border-radius: 0 0 var(--radius) var(--radius); cursor: pointer; position: relative; }
 .ma-check::before {
   content: "";
@@ -1069,6 +1074,38 @@
 .ma-check-inline input:checked::after { transform: translateX(16px); }
 .ma-check-inline span { flex: none; }
 
+/* A settings row whose control is a segmented picker rather than a select. */
+.ma-field-seg { flex-direction: column; align-items: stretch; gap: 9px; padding-top: 12px; padding-bottom: 12px; }
+.ma-field-seg > span { flex: none; }
+
+.ma-seg-small {
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  padding: 2px;
+  border-radius: 9px;
+  background: var(--ios-fill);
+  isolation: isolate;
+}
+.ma-seg-small .ma-seg-pill {
+  width: calc((100% - 4px) / var(--seg-count, 3));
+}
+.ma-seg-small button {
+  min-height: 30px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: var(--ios-label);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.ma-seg-small button:active { opacity: 0.5; }
+.ma-seg-small button[aria-pressed="true"] { font-weight: 600; }
+
 .ma-row-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
 .ma-error { margin: 0; font-size: 15px; color: var(--ios-red); }
 .ma-form { display: flex; flex-direction: column; gap: 4px; padding-top: 8px; }
@@ -1088,7 +1125,7 @@
   line-height: 1.4;
 }
 .ma-callout .icon { margin-top: 2px; flex: none; }
-@media (prefers-color-scheme: dark) { .ma-callout { color: #ff9f0a; } }
+[data-theme="dark"] .ma-callout { color: #ff9f0a; }
 
 .ma-review { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .ma-review li {
@@ -1159,7 +1196,7 @@
   font-weight: 600;
 }
 .ma-conf.is-low { background: rgba(255, 149, 0, 0.18); color: #a35400; }
-@media (prefers-color-scheme: dark) { .ma-conf.is-low { color: #ff9f0a; } }
+[data-theme="dark"] .ma-conf.is-low { color: #ff9f0a; }
 .ma-review-files { display: inline-flex; align-items: center; gap: 3px; }
 .ma-review-quote { margin: 0; padding: 8px 10px; border-radius: 8px; background: var(--ios-fill-2); font-size: 13px; font-style: italic; color: var(--ios-label-2); line-height: 1.4; }
 

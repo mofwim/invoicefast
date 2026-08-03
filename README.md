@@ -175,6 +175,13 @@ There is no push server here, so the honest limit is stated in the settings
 too: it arrives while the page or the installed app is open, including in the
 background. A reminder whose moment already passed is never fired late.
 
+**Light, dark, or whatever the device says.** Like iOS: Automatisch / Licht /
+Donker, under Weergave in the settings. The preference is resolved in
+JavaScript, so the stylesheet needs one dark block keyed on `data-theme`
+instead of two that must be kept in step, and a small script in the page
+applies the stored choice before the first paint. An embed can be pinned with
+`data-theme` to match its host page.
+
 **Lets you delete, and lets you take it back.** What a delete means depends on
 where the appointment came from, and the difference is respected rather than
 papered over. Something typed here is really removed. Something from a
@@ -227,10 +234,11 @@ lib/afspraken/
 ├── model.js       one shape for everything; buckets, urgency, conflicts
 ├── store.js       sources, sync, persistence, overrides
 ├── reminders.js   scheduling notifications
+├── theme.js       light, dark, or follow the device
 ├── idb.js         attachment bytes
 └── demo.js        the worked example
 
-tests/            128 tests; import.test.mjs is the corpus of real mail shapes
+tests/            138 tests; import.test.mjs is the corpus of real mail shapes
 ```
 
 ### Running it

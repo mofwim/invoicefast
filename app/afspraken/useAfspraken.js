@@ -38,6 +38,12 @@ import {
 } from "../../lib/afspraken/model";
 import { demoEvents } from "../../lib/afspraken/demo";
 import {
+  DEFAULT_THEME,
+  applyTheme,
+  isTheme,
+  watchSystemTheme,
+} from "../../lib/afspraken/theme";
+import {
   askPermission,
   notificationPermission,
   scheduleReminders,
@@ -393,6 +399,26 @@ export function useAfspraken({ initialTab = "binnenkort" } = {}) {
     setTimeout(() => URL.revokeObjectURL(url), 2000);
   }, [timeline]);
 
+  // ---- appearance --------------------------------------------------------
+  const themePreference = state.settings?.theme || DEFAULT_THEME;
+
+  // Apply the stored choice, and keep following the device while on automatic.
+  useEffect(() => {
+    if (!ready) return undefined;
+    applyTheme(themePreference);
+    if (themePreference !== "auto") return undefined;
+    return watchSystemTheme(() => applyTheme("auto"));
+  }, [ready, themePreference]);
+
+  const setTheme = useCallback(
+    (value) => {
+      const next = isTheme(value) ? value : DEFAULT_THEME;
+      applyTheme(next);
+      updateSettings({ theme: next });
+    },
+    [updateSettings]
+  );
+
   // ---- reminders ---------------------------------------------------------
   const [permission, setPermission] = useState("default");
 
@@ -485,6 +511,8 @@ export function useAfspraken({ initialTab = "binnenkort" } = {}) {
     updateSettings,
     permission,
     enableReminders,
+    theme: themePreference,
+    setTheme,
     importFiles,
     importText,
     confirmImport,

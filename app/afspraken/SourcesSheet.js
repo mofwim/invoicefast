@@ -6,6 +6,7 @@ import Icon from "./Icons";
 import { SOURCE_KINDS } from "../../lib/afspraken/store";
 import { formatFullDate, formatRelative } from "../../lib/afspraken/model";
 import { REMINDER_CHOICES } from "../../lib/afspraken/reminders";
+import { THEMES } from "../../lib/afspraken/theme";
 
 const HELP = [
   {
@@ -46,6 +47,7 @@ export default function SourcesSheet({
   onExport,
   onDemo,
   onReminders,
+  onTheme,
   permission,
   deleted = [],
   onUndelete,
@@ -270,6 +272,32 @@ export default function SourcesSheet({
 
       <section className="ma-section">
         <h3><Icon name="settings" size={15} /> Instellingen</h3>
+
+        <div className="ma-field ma-field-seg">
+          <span id="ma-theme-label">Weergave</span>
+          <div
+            className="ma-seg-small"
+            role="group"
+            aria-labelledby="ma-theme-label"
+            style={{
+              "--seg": Math.max(0, THEMES.findIndex((t) => t.value === (settings.theme || "auto"))),
+              "--seg-count": THEMES.length,
+            }}
+          >
+            <span className="ma-seg-pill" aria-hidden="true" />
+            {THEMES.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                aria-pressed={(settings.theme || "auto") === option.value}
+                onClick={() => onTheme(option.value)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <label className="ma-field">
           <span>“Binnenkort” loopt tot</span>
           <select

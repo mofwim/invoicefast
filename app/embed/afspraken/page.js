@@ -1,4 +1,6 @@
 import EmbedFrame from "./EmbedFrame";
+import { STORAGE_KEY } from "../../../lib/afspraken/store";
+import { isTheme, themeBootScript } from "../../../lib/afspraken/theme";
 
 export const metadata = {
   title: "Mijn Afspraken",
@@ -10,10 +12,7 @@ export const metadata = {
 export const viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f4f5f7" },
-    { media: "(prefers-color-scheme: dark)", color: "#0e1116" },
-  ],
+  themeColor: "#f2f2f7",
 };
 
 const TABS = new Set(["voorbij", "binnenkort", "later"]);
@@ -33,5 +32,13 @@ function safeIcsUrl(value) {
 
 export default function EmbedPage({ searchParams }) {
   const tab = TABS.has(searchParams?.tab) ? searchParams.tab : "binnenkort";
-  return <EmbedFrame tab={tab} icsUrl={safeIcsUrl(searchParams?.ics)} />;
+  // A host page can pin the widget's appearance to match its own.
+  const theme = isTheme(searchParams?.theme) ? searchParams.theme : "";
+
+  return (
+    <>
+      <script dangerouslySetInnerHTML={{ __html: themeBootScript(STORAGE_KEY, theme) }} />
+      <EmbedFrame tab={tab} icsUrl={safeIcsUrl(searchParams?.ics)} theme={theme} />
+    </>
+  );
 }
