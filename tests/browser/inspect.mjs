@@ -56,6 +56,20 @@ for (const locale of ["nl", "en"]) {
   const merged = await PDFDocument.load(await readFile(`out/merge-pdf-${locale}.pdf`));
   check(merged.getPageCount() === 7, `${locale} merge → 7 pages (got ${merged.getPageCount()})`);
 
+  // merge, taking only part of each file: pages 2 and 4 of the report plus
+  // page 2 of the annex. The words on them say which pages they were, so this
+  // can check it actually took the right ones rather than the right number.
+  const part = await readFile(`out/merge-pdf-part-${locale}.pdf`);
+  const partDoc = await PDFDocument.load(part);
+  check(partDoc.getPageCount() === 3, `${locale} merge (part) → 3 pages (got ${partDoc.getPageCount()})`);
+  const partWords = await textOf(part);
+  check(
+    /bladzijde 2/.test(partWords) && /bladzijde 4/.test(partWords) && !/bladzijde 3/.test(partWords),
+    `${locale} merge (part) → took pages 2 and 4, not 3`
+  );
+  check(/Bijlage 2/.test(partWords) && !/Bijlage 1/.test(partWords),
+    `${locale} merge (part) → took the annex's second page only`);
+
   // split: pages 1 and 3 were picked
   const split = await PDFDocument.load(await readFile(`out/split-pdf-${locale}.pdf`));
   check(split.getPageCount() === 2, `${locale} split → 2 pages (got ${split.getPageCount()})`);
