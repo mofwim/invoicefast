@@ -196,7 +196,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: color-mix(in srgb, var(--ios-green) 80%, var(--ios-label));
+  color: color-mix(in srgb, var(--ios-green) var(--tint-ink), var(--ios-label));
   flex: none;
 }
 .ma-upnext-title {
@@ -619,7 +619,7 @@
 .ma .btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 .ma .btn-sm { min-height: 34px; padding: 8px 13px; font-size: 15px; border-radius: 9px; }
 
-.ma .btn-primary { background: var(--ios-blue); color: #fff; }
+.ma .btn-primary { background: var(--ios-blue-fill); color: #fff; }
 .ma .btn-secondary { background: color-mix(in srgb, var(--ios-blue) 14%, transparent); color: var(--ios-blue); }
 .ma .btn-quiet { background: var(--ios-fill); color: var(--ios-blue); }
 .ma .btn-danger { background: var(--ios-red); color: #fff; }
@@ -1109,7 +1109,7 @@
   flex: none;
   transition: background-color 0.2s, border-color 0.2s;
 }
-.ma-review-pick input:checked { background: var(--ios-blue); border-color: var(--ios-blue); }
+.ma-review-pick input:checked { background: var(--ios-blue-fill); border-color: var(--ios-blue); }
 .ma-review-pick input:checked::after {
   content: "";
   position: absolute;
@@ -1151,7 +1151,7 @@
   padding: 2px 8px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--ios-green) 16%, transparent);
-  color: color-mix(in srgb, var(--ios-green) 70%, var(--ios-label));
+  color: color-mix(in srgb, var(--ios-green) var(--tint-ink), var(--ios-label));
   font-weight: 600;
 }
 .ma-conf.is-low { background: rgba(255, 149, 0, 0.18); color: #a35400; }

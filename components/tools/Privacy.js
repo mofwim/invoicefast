@@ -1,6 +1,4 @@
 import Icon from "../Icons";
-import { STORAGE_KEY } from "../../lib/afspraken/store";
-import { themeBootScript } from "../../lib/afspraken/theme";
 import { translator } from "../../lib/i18n/ui";
 import ConsentGate from "../ads/Consent";
 import "./tools.css";
@@ -107,7 +105,6 @@ export default function Privacy({ locale = "nl" }) {
 
   return (
     <div className="tp-page">
-      <script dangerouslySetInnerHTML={{ __html: themeBootScript(STORAGE_KEY) }} />
       <div className="tp tp-tool">
         <nav className="tp-nav">
           <a className="tp-back" href={`/${locale}/tools`}>

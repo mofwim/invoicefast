@@ -101,7 +101,22 @@ console.log("— on a phone (390 × 844, touch)\n");
   const pad = page.locator("canvas.tp-pad");
   await pad.waitFor({ timeout: 30000 });
 
+  // The pad sits below the sheet preview, so on a phone it starts off-screen —
+  // as it does for anyone signing a real document. Scroll to it the way a
+  // finger would: touchscreen and mouse take raw viewport coordinates and do
+  // not scroll on their own, so a box measured before this would be a point
+  // outside the window and every stroke would land on nothing.
+  await pad.scrollIntoViewIfNeeded();
   const box = await pad.boundingBox();
+  const viewport = page.viewportSize();
+  // Scrolling stops the moment the pad is flush with an edge, so "fits" means
+  // fits to within a sub-pixel. What this would catch is a pad grown taller
+  // than the screen — impossible to sign in one stroke.
+  check(
+    box.y >= -1 && box.y + box.height <= viewport.height + 1,
+    `the signature pad does not fit on a phone screen (${Math.round(box.y)}–${Math.round(box.y + box.height)} of ${viewport.height})`
+  );
+
   await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
   // A tap alone is a dot; a drag is a signature.
   await page.mouse.move(box.x + 30, box.y + box.height / 2);

@@ -40,14 +40,22 @@ export default function Market({ locale }) {
   const marketAlternates = Object.fromEntries(LOCALES.map((code) => [code, `/${code}/tools`]));
 
   return (
-    <div className="tp">
+    <div className="tp-page">
+      <div className="tp">
       <nav className="tp-nav">
         <span className="tp-nav-spacer" />
         <LanguageSwitch current={locale} alternates={marketAlternates} label={t("common.language")} />
       </nav>
 
-      <h1 className="tp-title">{t("market.title")}</h1>
-      <p className="tp-sub">{t("market.tagline")}</p>
+      <header className="tp-hero">
+        {/* Once, here — not whispered at the foot of all twenty-nine cards. */}
+        <p className="tp-promise">
+          <Icon name="check" size={14} strokeWidth={2.6} />
+          {t("market.local")}
+        </p>
+        <h1 className="tp-title">{t("market.title")}</h1>
+        <p className="tp-sub">{t("market.tagline")}</p>
+      </header>
 
       <div className="tp-search">
         <Icon name="search" size={16} />
@@ -70,7 +78,7 @@ export default function Market({ locale }) {
           <section className="tp-group">
             <div className="tp-cards">
               {hits.map((tool) => (
-                <ToolCard key={tool.id} tool={tool} local={t("market.local")} />
+                <ToolCard key={tool.id} tool={tool} />
               ))}
             </div>
           </section>
@@ -82,10 +90,13 @@ export default function Market({ locale }) {
       ) : (
         groups.map((group) => (
           <section className="tp-group" key={group.id}>
-            <h2>{t(`category.${group.id}`)}</h2>
+            <h2>
+              {t(`category.${group.id}`)}
+              <small>{group.tools.length}</small>
+            </h2>
             <div className="tp-cards">
               {group.tools.map((tool) => (
-                <ToolCard key={tool.id} tool={tool} local={t("market.local")} />
+                <ToolCard key={tool.id} tool={tool} />
               ))}
             </div>
           </section>
@@ -105,29 +116,26 @@ export default function Market({ locale }) {
         <a href={`/${locale}/privacy`}>{t("privacy.link")}</a>
       </p>
       <ConsentGate locale={locale} />
+      </div>
     </div>
   );
 }
 
-function ToolCard({ tool, local }) {
+function ToolCard({ tool }) {
   return (
-    <a className="tp-card" href={tool.href}>
+    <a className="tp-card" href={tool.href} data-tint={tool.tint}>
+      <span className="tp-card-go" aria-hidden="true">
+        <Icon name="chevron" size={17} strokeWidth={2.2} />
+      </span>
       <span className="tp-card-top">
         <span className="tp-badge" data-tint={tool.tint} aria-hidden="true">
-          <Icon name={tool.icon} size={21} strokeWidth={1.9} />
+          <Icon name={tool.icon} size={22} strokeWidth={1.9} />
         </span>
         <span className="tp-card-name">
           <strong>{tool.name}</strong>
           <span>{tool.tagline}</span>
         </span>
       </span>
-      <p>{tool.description}</p>
-      {tool.local && (
-        <span className="tp-card-foot">
-          <Icon name="check" size={13} strokeWidth={2.4} />
-          {local}
-        </span>
-      )}
     </a>
   );
 }

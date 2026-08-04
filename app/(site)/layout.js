@@ -1,3 +1,5 @@
+import { STORAGE_KEY } from "../../lib/afspraken/store";
+import { themeBootScript } from "../../lib/afspraken/theme";
 import "../globals.css";
 
 export const metadata = {
@@ -18,6 +20,12 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        {/* The same key the rest of the site writes, so a reader who chose dark
+            in Mijn Afspraken does not walk into a white front page. Read before
+            the first paint, so the choice never arrives as a flash. */}
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript(STORAGE_KEY) }} />
+      </head>
       <body>{children}</body>
     </html>
   );

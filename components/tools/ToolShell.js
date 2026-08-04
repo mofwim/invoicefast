@@ -1,6 +1,4 @@
 import Icon from "../Icons";
-import { STORAGE_KEY } from "../../lib/afspraken/store";
-import { themeBootScript } from "../../lib/afspraken/theme";
 import { LOCALES, LOCALE_META } from "../../lib/i18n/locales";
 import { translator } from "../../lib/i18n/ui";
 import { alternatesFor, relatedTools } from "../../lib/tools/registry";
@@ -25,7 +23,6 @@ export default function ToolShell({ tool, locale, children }) {
 
   return (
     <div className="tp-page">
-      <script dangerouslySetInnerHTML={{ __html: themeBootScript(STORAGE_KEY) }} />
       <div className="tp tp-tool">
         <nav className="tp-nav">
           <a className="tp-back" href={`/${locale}/tools`}>
@@ -73,10 +70,13 @@ export default function ToolShell({ tool, locale, children }) {
             <h2>{t("market.related")}</h2>
             <div className="tp-cards">
               {related.map((entry) => (
-                <a className="tp-card" href={entry.href} key={entry.id}>
+                <a className="tp-card" href={entry.href} key={entry.id} data-tint={entry.tint}>
+                  <span className="tp-card-go" aria-hidden="true">
+                    <Icon name="chevron" size={17} strokeWidth={2.2} />
+                  </span>
                   <span className="tp-card-top">
                     <span className="tp-badge" data-tint={entry.tint} aria-hidden="true">
-                      <Icon name={entry.icon} size={21} strokeWidth={1.9} />
+                      <Icon name={entry.icon} size={22} strokeWidth={1.9} />
                     </span>
                     <span className="tp-card-name">
                       <strong>{entry.name}</strong>

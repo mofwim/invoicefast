@@ -154,11 +154,11 @@ export default function ArabicText({ locale = "nl" }) {
       <Panel title={t("difference")}>
         <div className="tp-pair">
           <div>
-            <span className="tp-badge tp-badge-over">{t("nowShows")}</span>
+            <span className="tp-chip tp-chip-over">{t("nowShows")}</span>
             <div className="ar-demo">{before}</div>
           </div>
           <div>
-            <span className="tp-badge">{t("thenShows")}</span>
+            <span className="tp-chip">{t("thenShows")}</span>
             <div className="ar-demo">{output}</div>
           </div>
         </div>
