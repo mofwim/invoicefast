@@ -97,7 +97,7 @@ export default function WordCount({ locale = "nl" }) {
                     {stats.characters} / {max}
                   </span>
                 </span>
-                <span className={`tp-badge${over ? " tp-badge-over" : ""}`}>
+                <span className={`tp-chip${over ? " tp-chip-over" : ""}`}>
                   {over ? t("over", { n: -left }) : t("left", { n: left })}
                 </span>
               </li>

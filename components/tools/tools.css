@@ -13,9 +13,9 @@
 }
 
 .tp {
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 0 16px calc(56px + env(safe-area-inset-bottom));
+  max-width: 1080px;
+  margin-inline: auto;
+  padding: 0 24px calc(72px + env(safe-area-inset-bottom));
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Inter, Roboto, sans-serif;
   color: var(--ios-label);
   -webkit-font-smoothing: antialiased;
@@ -46,8 +46,8 @@
   align-items: center;
   gap: 4px;
   min-height: 44px;
-  padding-top: env(safe-area-inset-top);
-  margin-bottom: 4px;
+  padding-top: calc(18px + env(safe-area-inset-top));
+  margin-bottom: 10px;
 }
 .tp-back {
   display: inline-flex;
@@ -68,10 +68,10 @@
 .tp-nav-spacer { flex: 1; }
 
 /* Language links, not a dropdown — a crawler should be able to follow them. */
-.tp-langs { display: inline-flex; gap: 2px; margin-inline-start: auto; padding: 2px; border-radius: 9px; background: var(--ios-fill); }
+.tp-langs { display: inline-flex; gap: 2px; margin-inline-start: auto; padding: 3px; border-radius: 999px; background: var(--ios-fill); }
 .tp-langs a {
-  padding: 5px 11px;
-  border-radius: 7px;
+  padding: 6px 13px;
+  border-radius: 999px;
   color: var(--ios-label-2);
   font-size: 13px;
   font-weight: 600;
@@ -81,17 +81,22 @@
 .tp-langs a[aria-current="true"] { background: var(--ios-pill); box-shadow: var(--ios-pill-shadow); color: var(--ios-label); }
 .tp-langs a:active { opacity: 0.5; }
 
+/* The search is the hub's primary action, so it is sized like one. */
 .tp-search {
   display: flex;
   align-items: center;
-  gap: 7px;
-  height: 38px;
-  padding: 0 10px;
-  margin-bottom: 24px;
-  border-radius: 10px;
-  background: var(--ios-fill);
+  gap: 11px;
+  height: 54px;
+  padding: 0 18px;
+  margin-bottom: 40px;
+  max-width: 560px;
+  border-radius: 999px;
+  background: var(--ios-card);
+  box-shadow: var(--ios-lift);
   color: var(--ios-label-2);
+  transition: box-shadow 0.2s, transform 0.2s var(--ios-ease);
 }
+.tp-search:focus-within { box-shadow: var(--ios-lift-hover), 0 0 0 2px var(--ios-blue); }
 .tp-search input {
   flex: 1;
   min-width: 0;
@@ -102,6 +107,11 @@
   font-size: 17px;
   color: var(--ios-label);
 }
+/* Stated rather than left to the browser, which derives a placeholder by
+   fading the input's own colour — white at the UA's opacity measured 3.88:1 in
+   dark. "Zoeken" is this field's only label. */
+.tp-search input::placeholder { color: var(--ios-label-2); opacity: 1; }
+.tp-search .icon { color: var(--ios-label-3); }
 .tp-search input:focus { outline: none; }
 .tp-search input::-webkit-search-cancel-button { display: none; }
 .tp-search button {
@@ -116,120 +126,229 @@
   cursor: pointer;
 }
 
-.tp-empty { margin: 0; padding: 26px 18px; border-radius: var(--ios-radius); background: var(--ios-card); text-align: center; font-size: 15px; color: var(--ios-label-2); }
-.tp-related { margin-top: 30px; padding-top: 22px; border-top: 0.5px solid var(--ios-separator); }
-.tp-related .tp-card p { display: none; }
+.tp-empty { margin: 0; padding: 34px 20px; border-radius: var(--ios-radius); background: var(--ios-card); box-shadow: var(--ios-lift); text-align: center; font-size: 15px; color: var(--ios-label-2); }
+.tp-related { margin-top: 44px; padding-top: 28px; border-top: 0.5px solid var(--ios-separator); }
+.tp-related h2 { font-size: 17px; }
 
 .tp-title {
-  margin: 4px 0 8px;
-  font-size: 34px;
+  margin: 8px 0 12px;
+  font-size: var(--step-display);
   font-weight: 700;
-  letter-spacing: -0.032em;
-  line-height: 1.1;
+  letter-spacing: -0.04em;
+  line-height: 1.03;
+  /* Optical alignment: a big weight sits visibly right of the text under it
+     without this, because its left sidebearing is proportionally smaller. */
+  margin-inline-start: -0.02em;
 }
 .tp-sub {
-  margin: 0 0 22px;
-  font-size: 16px;
-  line-height: 1.45;
+  margin: 0 0 26px;
+  font-size: 17px;
+  line-height: 1.55;
   color: var(--ios-label-2);
-  max-width: 54ch;
+  /* The page is wide; a line of text is not. Two different measurements. */
+  max-width: 58ch;
 }
 
-/* Tool pages get a smaller title so the work itself leads. */
-.tp-tool .tp-title { font-size: 28px; margin-bottom: 6px; }
-.tp-tool .tp-sub { font-size: 15px; margin-bottom: 20px; }
+/* A tool page is a workbench: the work leads and the words introduce it. */
+.tp-tool { max-width: 860px; }
+.tp-tool .tp-title { font-size: var(--step-title); margin-bottom: 8px; }
+.tp-tool .tp-sub { font-size: 16px; margin-bottom: 26px; }
 
 /* ------------------------------------------------------------ the market */
 
-.tp-group { margin-bottom: 30px; }
+.tp-hero { padding: 26px 0 8px; }
+
+/* The promise, stated once and prominently, instead of whispered on every
+   one of twenty-nine cards. Repetition is not reassurance; it is noise. */
+.tp-promise {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 18px;
+  padding: 6px 14px 6px 11px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ios-green) 13%, transparent);
+  color: color-mix(in srgb, var(--ios-green) var(--tint-ink), var(--ios-label));
+  font-size: 13.5px;
+  font-weight: 500;
+}
+.tp-promise .icon { color: var(--ios-green); }
+
+.tp-group { margin-bottom: 44px; }
 .tp-group h2 {
-  margin: 0 0 8px 4px;
-  font-size: 13px;
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  margin: 0 0 14px;
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: var(--ios-label);
+  text-transform: none;
+}
+.tp-group h2 small {
+  font-size: 14px;
   font-weight: 400;
-  text-transform: uppercase;
-  letter-spacing: 0.01em;
+  /* How many tools are in the category — a fact worth reading, not a flourish,
+     so it takes the secondary label rather than the faint one. */
   color: var(--ios-label-2);
+  font-variant-numeric: tabular-nums;
 }
 
 .tp-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(258px, 1fr));
+  gap: 14px;
 }
 
 .tp-card {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 16px;
+  gap: 4px;
+  /* Every card the same height, so a row never leaves a ragged hole. */
+  min-height: 132px;
+  padding: 18px;
   border-radius: var(--ios-radius);
   background: var(--ios-card);
+  box-shadow: var(--ios-lift);
   color: inherit;
   text-decoration: none;
-  transition: transform 0.18s var(--ios-ease), box-shadow 0.18s;
+  overflow: hidden;
+  transition: transform 0.2s var(--ios-ease), box-shadow 0.2s var(--ios-ease);
 }
-.tp-card:hover { box-shadow: 0 6px 22px -12px rgba(0, 0, 0, 0.35); }
-.tp-card:active { transform: scale(0.985); }
 
-.tp-card-top { display: flex; align-items: center; gap: 11px; }
+/* A wash of the card's own tint, from the corner its icon sits in. Barely
+   visible on its own; what it does is stop twenty-nine white rectangles from
+   reading as one grey field. */
+.tp-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    120% 90% at var(--wash-x, 0%) 0%,
+    color-mix(in srgb, var(--tint, var(--ios-blue)) 12%, transparent),
+    transparent 62%
+  );
+  opacity: 0.85;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.tp-card > * { position: relative; }
+
+.tp-card:hover { transform: translateY(-3px); box-shadow: var(--ios-lift-hover); }
+.tp-card:hover::before { opacity: 1; }
+.tp-card:active { transform: translateY(-1px) scale(0.99); }
+
+.tp-card-top { display: flex; flex-direction: column; align-items: flex-start; gap: 13px; }
+
+/* The icon is a tinted plate rather than a saturated block: at 44px a solid
+   gradient shouts, and twenty-nine of them shouting at once is a toy shop. */
 .tp-badge {
   display: grid;
   place-items: center;
-  width: 42px; height: 42px;
-  border-radius: 11px;
-  color: #fff;
+  width: 44px; height: 44px;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--tint, var(--ios-blue)) 15%, var(--ios-card));
+  color: var(--tint, var(--ios-blue));
   flex: none;
+  transition: transform 0.22s var(--ios-ease);
 }
-.tp-badge[data-tint="blue"]   { background: linear-gradient(160deg, #0a84ff, #0060df); }
-.tp-badge[data-tint="teal"]   { background: linear-gradient(160deg, #35c2da, #1d8fa6); }
-.tp-badge[data-tint="indigo"] { background: linear-gradient(160deg, #6b6ae8, #4340c4); }
-.tp-badge[data-tint="purple"] { background: linear-gradient(160deg, #c169ec, #8e35c0); }
-.tp-badge[data-tint="orange"] { background: linear-gradient(160deg, #ffa32b, #e07800); }
+.tp-card:hover .tp-badge { transform: scale(1.06) rotate(-2deg); }
 
-.tp-card-name { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.tp-card-name strong { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
-.tp-card-name span { font-size: 13px; color: var(--ios-label-2); }
+.tp-card[data-tint="blue"],   .tp-badge[data-tint="blue"]   { --tint: var(--ios-blue); }
+.tp-card[data-tint="teal"],   .tp-badge[data-tint="teal"]   { --tint: var(--ios-teal); }
+.tp-card[data-tint="indigo"], .tp-badge[data-tint="indigo"] { --tint: var(--ios-indigo); }
+.tp-card[data-tint="purple"], .tp-badge[data-tint="purple"] { --tint: var(--ios-purple); }
+.tp-card[data-tint="orange"], .tp-badge[data-tint="orange"] { --tint: var(--ios-orange); }
+.tp-card[data-tint="pink"],   .tp-badge[data-tint="pink"]   { --tint: var(--ios-pink); }
 
-.tp-card p { margin: 0; font-size: 14px; line-height: 1.45; color: var(--ios-label-2); }
+.tp-card-name { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.tp-card-name strong { font-size: var(--step-head); font-weight: 600; letter-spacing: -0.021em; }
+.tp-card-name span { font-size: 13.5px; line-height: 1.4; color: var(--ios-label-2); }
 
-.tp-card-foot { display: flex; align-items: center; gap: 6px; margin-top: 2px; font-size: 12px; color: var(--ios-green); }
+/* The full description is in the page's metadata, where a search engine reads
+   it. On the card it was a wall of text between the reader and the click. */
+.tp-card p { display: none; }
+.tp-card-foot { display: none; }
+
+/* An arrow that only leans in on approach. */
+.tp-card-go {
+  position: absolute;
+  inset-block-start: 18px;
+  inset-inline-end: 16px;
+  color: var(--ios-label-3);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.2s, transform 0.2s var(--ios-ease);
+}
+.tp-card:hover .tp-card-go { opacity: 1; transform: none; color: var(--tint, var(--ios-blue)); }
+[dir="rtl"] .tp-card-go { transform: translateX(4px) rotate(180deg); }
+[dir="rtl"] .tp-card:hover .tp-card-go { transform: rotate(180deg); }
 
 /* ---------------------------------------------------------------- shell */
 
 .tp-panel {
-  padding: 18px;
+  padding: 20px;
   border-radius: var(--ios-radius);
   background: var(--ios-card);
-  margin-bottom: 14px;
+  box-shadow: var(--ios-lift);
+  margin-bottom: 16px;
 }
 .tp-panel h3 {
-  margin: 0 0 12px;
-  font-size: 15px;
+  margin: 0 0 14px;
+  font-size: var(--step-head);
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
 }
 
+/* The one thing a tool page is for. It was the palest box on the screen;
+   now it is the loudest, which is the correct order of importance. */
 .tp-drop {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 7px;
-  padding: 34px 20px;
-  border: 1.5px dashed var(--ios-separator);
+  gap: 10px;
+  padding: 52px 24px;
+  margin-bottom: 16px;
+  border: 2px dashed color-mix(in srgb, var(--ios-blue) 32%, transparent);
   border-radius: var(--ios-radius);
-  background: var(--ios-card);
+  background:
+    radial-gradient(140% 100% at 50% 0%, color-mix(in srgb, var(--ios-blue) 9%, transparent), transparent 68%),
+    var(--ios-card);
   color: var(--ios-label-2);
   font-size: 15px;
   text-align: center;
   cursor: pointer;
-  transition: border-color 0.15s, background-color 0.15s, transform 0.15s var(--ios-ease);
+  overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s var(--ios-ease), box-shadow 0.2s;
 }
-.tp-drop:active { transform: scale(0.99); }
-.tp-drop.is-dragging,
-.tp-drop:hover { border-color: var(--ios-blue); background: color-mix(in srgb, var(--ios-blue) 7%, var(--ios-card)); }
-.tp-drop .icon { color: var(--ios-blue); }
-.tp-drop strong { color: var(--ios-label); font-size: 17px; font-weight: 500; }
-.tp-drop small { font-size: 13px; }
+.tp-drop:hover { border-color: var(--ios-blue); box-shadow: var(--ios-lift); }
+.tp-drop:active { transform: scale(0.995); }
+
+/* Dragging a file over it: the whole target answers, not just its border. */
+.tp-drop.is-dragging {
+  border-color: var(--ios-blue);
+  border-style: solid;
+  transform: scale(1.008);
+  box-shadow: var(--ios-lift-hover);
+}
+.tp-drop.is-dragging::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--ios-blue) 10%, transparent);
+}
+
+.tp-drop .icon {
+  color: var(--ios-blue);
+  transition: transform 0.28s var(--ios-ease);
+}
+.tp-drop:hover .icon { transform: translateY(-3px); }
+.tp-drop.is-dragging .icon { transform: translateY(-6px) scale(1.1); }
+.tp-drop strong { color: var(--ios-label); font-size: 19px; font-weight: 600; letter-spacing: -0.015em; }
+.tp-drop small { font-size: 13.5px; }
 
 .tp-textarea {
   width: 100%;
@@ -253,10 +372,10 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-height: 44px;
-  padding: 11px 18px;
+  min-height: 46px;
+  padding: 12px 22px;
   border: 0;
-  border-radius: 11px;
+  border-radius: 999px;
   font: inherit;
   font-size: 17px;
   font-weight: 500;
@@ -267,8 +386,12 @@
 }
 .tp .btn:active { opacity: 0.55; transform: scale(0.97); }
 .tp .btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
-.tp .btn-sm { min-height: 34px; padding: 8px 13px; font-size: 15px; border-radius: 9px; }
-.tp .btn-primary { background: var(--ios-blue); color: #fff; }
+.tp .btn-sm { min-height: 34px; padding: 8px 15px; font-size: 15px; border-radius: 999px; }
+.tp .btn-primary {
+  background: var(--ios-blue-fill);
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 8px 20px -10px color-mix(in srgb, var(--ios-blue) 70%, transparent);
+}
 .tp .btn-quiet { background: var(--ios-fill); color: var(--ios-blue); }
 
 /* --------------------------------------------------------------- results */
@@ -284,8 +407,8 @@
   margin-bottom: 14px;
 }
 .tp-note .icon { margin-top: 2px; flex: none; }
-.tp-note-ok { background: color-mix(in srgb, var(--ios-green) 14%, transparent); color: color-mix(in srgb, var(--ios-green) 72%, var(--ios-label)); }
-.tp-note-warn { background: color-mix(in srgb, var(--ios-orange) 16%, transparent); color: color-mix(in srgb, var(--ios-orange) 78%, var(--ios-label)); }
+.tp-note-ok { background: color-mix(in srgb, var(--ios-green) 14%, transparent); color: color-mix(in srgb, var(--ios-green) var(--tint-ink), var(--ios-label)); }
+.tp-note-warn { background: color-mix(in srgb, var(--ios-orange) 16%, transparent); color: color-mix(in srgb, var(--ios-orange) var(--tint-ink), var(--ios-label)); }
 .tp-note-error { background: color-mix(in srgb, var(--ios-red) 14%, transparent); color: var(--ios-red); }
 
 .tp-rows { list-style: none; margin: 0; padding: 0; border-radius: var(--ios-radius); background: var(--ios-card); overflow: hidden; }
@@ -464,10 +587,12 @@
 }
 
 @media (max-width: 600px) {
-  .tp-title { font-size: 30px; }
-  .tp-tool .tp-title { font-size: 25px; }
+  .tp { padding-inline: 18px; }
   .tp-cards { grid-template-columns: 1fr; }
   .tp-actions .btn { flex: 1; }
+  .tp-hero { padding-top: 14px; }
+  .tp-search { height: 50px; margin-bottom: 30px; }
+  .tp-drop { padding: 40px 20px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -594,16 +719,19 @@
   padding: 7px 0;
 }
 .tp-limits li + li { border-top: 0.5px solid var(--ios-separator); }
-.tp-badge {
+/* A verdict pill — "still fits", "was", "becomes". Named apart from
+   .tp-badge, which is the tinted icon plate on a card: they had shared a
+   name, and the later rule was painting every tool icon green. */
+.tp-chip {
   flex: none;
-  padding: 3px 10px;
+  padding: 4px 11px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--ios-green) 15%, transparent);
-  color: color-mix(in srgb, var(--ios-green) 72%, var(--ios-label));
+  color: color-mix(in srgb, var(--ios-green) var(--tint-ink), var(--ios-label));
   font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
-.tp-badge-over { background: color-mix(in srgb, var(--ios-red) 14%, transparent); color: var(--ios-red); }
+.tp-chip-over { background: color-mix(in srgb, var(--ios-red) 14%, transparent); color: var(--ios-red); }
 
 /* ------------------------------------------------------------ comparing */
 
@@ -751,7 +879,7 @@
   background: var(--ios-fill);
   color: transparent;
 }
-.tp-grid-item.is-selected .tp-grid-tick { background: var(--ios-blue); color: #fff; }
+.tp-grid-item.is-selected .tp-grid-tick { background: var(--ios-blue-fill); color: #fff; }
 
 .tp-grid-no { font-size: 12px; color: var(--ios-label-2); font-variant-numeric: tabular-nums; }
 .tp-grid-tools { display: flex; gap: 2px; }
@@ -974,7 +1102,7 @@
   font-size: 13px;
   cursor: pointer;
 }
-.ad-switch-options button[aria-pressed="true"] { background: var(--ios-blue); color: #fff; }
+.ad-switch-options button[aria-pressed="true"] { background: var(--ios-blue-fill); color: #fff; }
 
 .tp-prose { margin: 0 0 12px; font-size: 15px; line-height: 1.6; color: var(--ios-label); }
 .tp-prose:last-child { margin-bottom: 0; }
@@ -1010,7 +1138,7 @@
 [dir="rtl"] .tp-grid-no,
 [dir="rtl"] .tp-shots span,
 [dir="rtl"] .tp-diff-no,
-[dir="rtl"] .tp-badge,
+[dir="rtl"] .tp-chip,
 [dir="rtl"] .tp-out,
 [dir="rtl"] .tp-passwords code,
 [dir="rtl"] .tp-mono {
@@ -1073,7 +1201,7 @@
   transition: background-color 0.15s, transform 0.15s var(--ios-ease);
 }
 .ar-app:active { transform: scale(0.96); }
-.ar-app[aria-pressed="true"] { background: var(--ios-blue); color: #fff; }
+.ar-app[aria-pressed="true"] { background: var(--ios-blue-fill); color: #fff; }
 
 @media (pointer: coarse) {
   .ar-app { min-height: 40px; }

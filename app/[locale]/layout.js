@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 import { LOCALES, LOCALE_META, dirFor, isLocale } from "../../lib/i18n/locales";
+import { STORAGE_KEY } from "../../lib/afspraken/store";
+import { themeBootScript } from "../../lib/afspraken/theme";
 import "../globals.css";
 
 export function generateStaticParams() {
@@ -33,6 +35,15 @@ export default function LocaleLayout({ children, params }) {
   if (!isLocale(params.locale)) notFound();
   return (
     <html lang={LOCALE_META[params.locale].htmlLang} dir={dirFor(params.locale)}>
+      <head>
+        {/* Light or dark, settled before the first pixel. This lives in the
+            layout rather than in each page because the hub had been quietly
+            missing it since it was written — it always rendered light, however
+            the device was set, and nothing caught it because none of the
+            checks looked at colour. A page cannot forget what it does not
+            have to remember. */}
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript(STORAGE_KEY) }} />
+      </head>
       <body>{children}</body>
     </html>
   );
