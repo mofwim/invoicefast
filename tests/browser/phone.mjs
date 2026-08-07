@@ -75,22 +75,102 @@ console.log("— on a phone (390 × 844, touch)\n");
         })
         .map((el) => `${el.tagName.toLowerCase()}:${(el.textContent || el.type || "").trim().slice(0, 18)}`);
 
+      /**
+       * Text wrung out into a narrow column.
+       *
+       * A flex row hands the control the width it asks for and the label takes
+       * what is left — which on a phone can be almost nothing. The hint under
+       * "Resolutie" on pdf-verkleinen rendered 25px wide and 312px tall: four
+       * characters to a line, seventeen lines, unreadable. Nothing caught it,
+       * because the page did not scroll sideways and every target was big
+       * enough. Reading is the thing being checked here, not geometry.
+       */
+      const squeezed = [...document.querySelectorAll("body *")]
+        .filter((el) => !el.children.length)
+        .filter((el) => (el.textContent || "").trim().length >= 25)
+        .filter((el) => {
+          const box = el.getBoundingClientRect();
+          if (!box.width || !box.height) return false;
+          const size = parseFloat(getComputedStyle(el).fontSize) || 14;
+          // Roughly half the font size per glyph, which is close enough for
+          // "is this a column of words or a column of letters".
+          const perLine = box.width / (size * 0.5);
+          const lines = box.height / (size * 1.4);
+          return perLine < 20 && lines > 3;
+        })
+        .map((el) => `${el.tagName.toLowerCase()}:"${(el.textContent || "").trim().replace(/\s+/g, " ").slice(0, 24)}"`);
+
       return {
         scrolls: doc.scrollWidth > doc.clientWidth + 1,
         by: doc.scrollWidth - doc.clientWidth,
         overflowing: [...new Set(overflowing)].slice(0, 3),
         small: [...new Set(small)].slice(0, 3),
+        squeezed: [...new Set(squeezed)].slice(0, 3),
       };
     });
 
     const okWidth = check(!layout.scrolls, `${locale}/${slug}: page scrolls sideways by ${layout.by}px — ${layout.overflowing.join(", ")}`);
     const okTargets = check(layout.small.length === 0, `${locale}/${slug}: targets under 32px — ${layout.small.join(", ")}`);
+    check(layout.squeezed.length === 0, `${locale}/${slug}: text squeezed into a sliver — ${layout.squeezed.join(", ")}`);
 
     if (!okWidth || !okTargets) {
       console.log(`FAIL  ${locale}/${slug}${layout.scrolls ? ` — +${layout.by}px wide` : ""}${layout.small.length ? ` — small: ${layout.small.join(", ")}` : ""}`);
     }
     await page.close();
   }
+}
+
+/**
+ * The page grid, where a mis-tap costs a page.
+ *
+ * Five controls under every thumbnail, and one of them throws the page away.
+ * They were 34px — inside the old 32px limit and still the easiest thing in
+ * the market to hit by accident — with delete flush against rotate in the same
+ * grey. `title` explains them on a desktop; on a phone there is no hover, so
+ * the only thing a thumb has to go on is size and distance.
+ */
+{
+  const page = await phone.newPage();
+  await page.goto(`${BASE}/nl/tools/pdf-pagina-s-ordenen`, { waitUntil: "networkidle" });
+  await page.setInputFiles('input[type="file"]', file("rapport.pdf"));
+  await page.locator(".tp-grid-tools button").first().waitFor({ timeout: 30000 });
+
+  const grid = await page.evaluate(() => {
+    const rows = [...document.querySelectorAll(".tp-grid-tools")];
+    let smallest = Infinity;
+    let overflow = 0;
+    let nearest = Infinity;
+
+    for (const row of rows) {
+      const edge = row.getBoundingClientRect().right;
+      const buttons = [...row.querySelectorAll("button")].map((b) => ({
+        danger: b.hasAttribute("data-danger"),
+        box: b.getBoundingClientRect(),
+      }));
+      for (const { box } of buttons) {
+        smallest = Math.min(smallest, box.width, box.height);
+        overflow = Math.max(overflow, box.right - edge);
+      }
+      // Only a button sharing the delete's line can be mistaken for it.
+      const danger = buttons.find((b) => b.danger);
+      if (!danger) continue;
+      for (const other of buttons) {
+        if (other.danger || other.box.y !== danger.box.y) continue;
+        nearest = Math.min(nearest, Math.abs(danger.box.x - other.box.right));
+      }
+    }
+    return { rows: rows.length, smallest, overflow: Math.round(overflow), nearest };
+  });
+
+  check(grid.rows > 0, "the page grid rendered no tools to check");
+  check(grid.smallest >= 44, `page controls under 44px for a finger (smallest ${grid.smallest}px)`);
+  check(grid.overflow <= 1, `page controls spill out of their tile by ${grid.overflow}px`);
+  check(
+    grid.nearest === Infinity || grid.nearest >= 20,
+    `delete sits ${Math.round(grid.nearest)}px from a harmless button — too close to tell apart by touch`
+  );
+  console.log(`  ok  page controls: ${grid.smallest}px, delete ${grid.nearest === Infinity ? "on its own row" : `${Math.round(grid.nearest)}px clear`}`);
+  await page.close();
 }
 
 // Signing with a finger is the whole reason the pad exists.

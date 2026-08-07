@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Actions, Field, FileDrop, Note, Panel, Segmented, Slider, ResultFile, download, formatBytes, Icon } from "../ui";
 import { makeZip, uniqueNames } from "../../../lib/tools/zip";
 import { EXTENSION, MIME, encode, loadImage, render, renameExtension, supportsType } from "../../../lib/tools/image";
@@ -8,6 +8,9 @@ import { toolStrings } from "../../../lib/i18n/tools";
 
 export default function Converter({ locale = "nl" }) {
   const t = toolStrings("convert-image", locale);
+  // The pictures as they were dropped, kept so a change of format can be
+  // answered by converting them again rather than by asking for them again.
+  const [files, setFiles] = useState([]);
   const [items, setItems] = useState([]);
   const [format, setFormat] = useState(MIME.webp);
   const [quality, setQuality] = useState(85);
@@ -23,12 +26,29 @@ export default function Converter({ locale = "nl" }) {
 
   useEffect(() => () => items.forEach((item) => item.url && URL.revokeObjectURL(item.url)), [items]);
 
-  const take = useCallback(
-    async (files) => {
-      setError("");
-      setBusy(true);
-      const out = [];
+  /**
+   * Convert whenever the pictures or the settings change.
+   *
+   * This used to run once, on drop, against whatever the settings happened to
+   * be — so changing the format afterwards did nothing at all, and the drop
+   * zone had to carry the instruction "pick the format above first". Deciding
+   * before you can see anything is the wrong way round; now the answer follows
+   * the question, and the settings sit under the result where they belong.
+   */
+  useEffect(() => {
+    if (!files.length) {
+      setItems([]);
+      return undefined;
+    }
 
+    // Settings can change faster than a large picture encodes, so a superseded
+    // run must not overwrite a newer one — nor leak the blobs it already made.
+    let live = true;
+    setError("");
+    setBusy(true);
+
+    (async () => {
+      const out = [];
       for (const file of files) {
         try {
           const image = await loadImage(file);
@@ -49,46 +69,30 @@ export default function Converter({ locale = "nl" }) {
             height: image.height,
           });
         } catch (err) {
-          setError(`${file.name}: ${err.message}`);
+          if (live) setError(`${file.name}: ${err.message}`);
         }
       }
 
-      setItems((previous) => {
-        previous.forEach((item) => item.url && URL.revokeObjectURL(item.url));
-        return out;
-      });
+      if (!live) {
+        out.forEach((item) => URL.revokeObjectURL(item.url));
+        return;
+      }
+      setItems(out);
       setBusy(false);
-    },
-    [format, quality]
-  );
+    })();
+
+    return () => {
+      live = false;
+    };
+  }, [files, format, quality]);
 
   return (
     <>
-      <Panel title={t("target")}>
-        <Field label={t("format")}>
-          <Segmented
-            label={t("format")}
-            value={format}
-            onChange={setFormat}
-            options={[
-              ...(webpOk ? [{ value: MIME.webp, label: "WebP" }] : []),
-              { value: MIME.jpeg, label: "JPG" },
-              { value: MIME.png, label: "PNG" },
-            ]}
-          />
-        </Field>
-        {format !== MIME.png && (
-          <Field label={t("quality")}>
-            <Slider value={quality} onChange={setQuality} min={40} max={100} suffix="%" />
-          </Field>
-        )}
-        {!webpOk && (
-          <Note kind="warn">{t("noWebp")}</Note>
-        )}
-      </Panel>
-
+      {/* The one thing to do, first and alone. Every other tool in the market
+          opens with a single drop zone; this one opened with a format picker
+          and a quality slider for a picture that did not exist yet. */}
       <FileDrop
-        onFiles={take}
+        onFiles={setFiles}
         accept="image/*"
         multiple
         icon="shuffle"
@@ -96,6 +100,29 @@ export default function Converter({ locale = "nl" }) {
         title={t("dropMany")}
         hint={t("dropManyHint")}
       />
+
+      {files.length > 0 && (
+        <Panel title={t("target")}>
+          <Field label={t("format")}>
+            <Segmented
+              label={t("format")}
+              value={format}
+              onChange={setFormat}
+              options={[
+                ...(webpOk ? [{ value: MIME.webp, label: "WebP" }] : []),
+                { value: MIME.jpeg, label: "JPG" },
+                { value: MIME.png, label: "PNG" },
+              ]}
+            />
+          </Field>
+          {format !== MIME.png && (
+            <Field label={t("quality")}>
+              <Slider value={quality} onChange={setQuality} min={40} max={100} suffix="%" />
+            </Field>
+          )}
+          {!webpOk && <Note kind="warn">{t("noWebp")}</Note>}
+        </Panel>
+      )}
 
       {busy && <Note kind="ok">{t("converting")}</Note>}
       {error && <Note kind="error">{error}</Note>}

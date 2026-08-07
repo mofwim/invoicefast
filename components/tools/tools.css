@@ -478,6 +478,13 @@
 
 .tp-field {
   display: flex;
+  /* The control takes the width it needs and the label takes the rest — but on
+     a phone a three-option segmented control needs nearly all of it, and the
+     label used to shrink to whatever was left. Measured on an iPhone 13: the
+     hint under "Resolutie" rendered 25px wide and 312px tall, four characters
+     to a line for seventeen lines. Wrapping means a control that cannot fit
+     beside a readable label drops to its own line instead of crushing it. */
+  flex-wrap: wrap;
   align-items: center;
   gap: 14px;
   min-height: 48px;
@@ -486,7 +493,7 @@
   letter-spacing: -0.01em;
 }
 .tp-field + .tp-field { border-top: 0.5px solid var(--ios-separator); }
-.tp-field-label { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+.tp-field-label { display: flex; flex-direction: column; gap: 1px; flex: 1 1 13rem; min-width: 13rem; }
 .tp-field-label small { font-size: 13px; color: var(--ios-label-2); }
 
 .tp-field select,
@@ -882,7 +889,7 @@
 .tp-grid-item.is-selected .tp-grid-tick { background: var(--ios-blue-fill); color: #fff; }
 
 .tp-grid-no { font-size: 12px; color: var(--ios-label-2); font-variant-numeric: tabular-nums; }
-.tp-grid-tools { display: flex; gap: 2px; }
+.tp-grid-tools { display: flex; flex-wrap: wrap; gap: 2px; }
 .tp-grid-tools button {
   width: 26px; height: 26px;
   border: 0;
@@ -894,8 +901,20 @@
   cursor: pointer;
 }
 .tp-grid-tools button:hover:not(:disabled) { color: var(--ios-label); }
-.tp-grid-tools button[data-danger]:hover { color: var(--ios-red); }
 .tp-grid-tools button:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* Throwing a page away is the one thing here that cannot be undone by pressing
+   the same button again, and it used to sit flush against rotate-right at the
+   same size in the same grey — five identical icons in a row, with the
+   destructive one at the end. Pushed away from the cluster and tinted red, so
+   it reads as a different kind of thing before it is pressed rather than
+   after. `title` is no help on a phone: there is no hover. */
+.tp-grid-tools button[data-danger] {
+  margin-inline-start: auto;
+  background: color-mix(in srgb, var(--ios-red) 12%, transparent);
+  color: var(--ios-red);
+}
+.tp-grid-tools button[data-danger]:hover { background: color-mix(in srgb, var(--ios-red) 22%, transparent); }
 
 .tp-cover {
   width: 34px;
@@ -986,8 +1005,14 @@
   .tp-back { min-height: 44px; padding-top: 11px; padding-bottom: 11px; }
   .tp-langs a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; }
   .tp-langs { padding: 2px; }
-  .tp-grid-tools button { width: 34px; height: 34px; }
-  .tp-page-tools button { width: 34px; height: 34px; }
+  /* 44px is Apple's minimum for a finger, and these are the smallest controls
+     in the market: five of them under a thumbnail, one of which deletes a
+     page. At 34px they cleared the old 32px check while still being the
+     easiest thing here to hit by mistake. Five at 44px will not fit across a
+     phone column, which is what the wrap on .tp-grid-tools is for — two rows
+     of comfortable targets beat one row of cramped ones. */
+  .tp-grid-tools button { width: 44px; height: 44px; font-size: 16px; }
+  .tp-page-tools button { width: 44px; height: 44px; }
   /* Five choices do not fit across a phone. Let the control scroll rather
      than let it push the whole page sideways. */
   .tp-seg {

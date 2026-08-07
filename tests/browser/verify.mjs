@@ -63,6 +63,20 @@ const TOOLS = [
     async run(page, locale, tool) {
       await page.setInputFiles('input[type="file"]', file("foto.png"));
       await page.locator(".tp-rows li").first().waitFor({ timeout: 20000 });
+
+      // Changing the format has to convert again. It used to do nothing at all:
+      // the conversion ran once, on drop, against whatever the settings were —
+      // so the drop zone had to carry the instruction "pick the format first",
+      // and anyone who changed their mind afterwards silently kept the old file.
+      const asDropped = await page.locator(".tp-rows li").first().innerText();
+      if (!/\.webp/i.test(asDropped)) throw new Error(`expected a webp on drop, got ${asDropped}`);
+
+      await page.getByRole("button", { name: "JPG", exact: true }).click();
+      await page.waitForFunction(
+        () => /\.jpe?g/i.test(document.querySelector(".tp-rows li")?.innerText || ""),
+        null,
+        { timeout: 20000 }
+      );
     },
   },
   {
